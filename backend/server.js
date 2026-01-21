@@ -14,17 +14,31 @@ connectDB();
 
 const app = express();
 
+// Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // matches your Vite frontend
+  credentials: true,
+}));
+
+// APPLY LIMITER
+// Note: If you have issues during development, you can comment this out
 app.use("/api", apiLimiter);
 
+// Routes
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/trips", tripRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/ai", aiRoutes);
 
+
+// Error Handling (Must be last)
 app.use(errorHandler);
 
-app.listen(process.env.PORT, () =>
-  console.log(`Server running on port ${process.env.PORT}`)
+// FIX: Added a fallback port. If process.env.PORT is undefined, 
+// app.listen will fail without the "|| 5000"
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
 );

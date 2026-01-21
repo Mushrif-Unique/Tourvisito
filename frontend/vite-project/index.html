@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tourvisito | AI Travel Planner</title>
+    <meta name="description" content="Tourvisito is an AI-powered travel planning and booking platform." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+      :root {
+        --color-bg: #f8faff;
+        --color-primary: #112647;
+        --color-accent: #ee1660;
+        --color-text-muted: #64748b;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: radial-gradient(circle at top right, #ffffff, #f1f5f9);
+        color: var(--color-primary);
+        /* Prevents horizontal scroll on mobile */
+        overflow-x: hidden; 
+        min-height: 100vh;
+      }
+
+      /* Responsive Container */
+      .loading-container {
+        height: 100vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px; /* Padding for small screens */
+      }
+
+      .logo-wrapper {
+        text-align: center;
+        margin-bottom: 32px;
+        animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .logo {
+        /* Fluid typography: adjusts size based on screen width */
+        font-size: clamp(28px, 6vw, 40px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+
+      .accent {
+        color: var(--color-accent);
+        display: inline-block;
+      }
+
+      /* Responsive Loader Bar */
+      .loader-bar {
+        width: 100%;
+        max-width: 180px; /* Limits width on desktop */
+        height: 4px;
+        background: rgba(17, 38, 71, 0.08); /* Subtle version of primary color */
+        border-radius: 100px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Desktop adjustment */
+      @media (min-width: 768px) {
+        .loader-bar {
+          max-width: 240px;
+          height: 5px;
+        }
+      }
+
+      .loader-progress {
+        width: 40%;
+        height: 100%;
+        background: var(--color-accent);
+        position: absolute;
+        border-radius: 100px;
+        animation: loading-slide 1.8s infinite cubic-bezier(0.65, 0, 0.35, 1);
+      }
+
+      /* Keyframes */
+      @keyframes loading-slide {
+        0% { left: -45%; width: 30%; }
+        50% { width: 50%; }
+        100% { left: 105%; width: 30%; }
+      }
+
+      @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root">
+      <div class="loading-container">
+        <div class="logo-wrapper">
+          <div class="logo">Tour<span class="accent">visito</span></div>
+        </div>
+        <div class="loader-bar">
+          <div class="loader-progress"></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

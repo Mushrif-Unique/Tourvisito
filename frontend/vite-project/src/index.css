@@ -1,0 +1,75 @@
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Use the colors from your brand variables */
+  --color-bg: #fcfdff;
+  --color-primary: #112647;
+  --color-accent: #ee1660;
+  
+  color-scheme: light;
+  color: var(--color-primary);
+  background-color: var(--color-bg);
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  /* Remove display: flex from body; it's better to handle centering in the App Shell */
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* THE MAGIC CONTAINER */
+/* Apply this class to a wrapper in your App.jsx or page files */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto; /* Centers horizontally */
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+/* Ensure images and cards don't break the layout */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Professional Input Reset */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+/* Links */
+a {
+  font-weight: 500;
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: opacity 0.25s;
+}
+a:hover {
+  opacity: 0.8;
+}
+
+/* Buttons (Premium Style) */
+button {
+  border-radius: 12px;
+  border: none;
+  padding: 0.8em 1.6em;
+  font-size: 1em;
+  font-weight: 600;
+  background-color: var(--color-primary);
+  color: white;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(17, 38, 71, 0.1);
+}
