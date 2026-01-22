@@ -51,6 +51,7 @@ const Navbar = () => {
               {token ? (
                 <>
                   <Link to="/ai" style={aiPill}>AI Itinerary</Link>
+                  <Link to="/booking" style={aiPill}>Booking</Link>
                   <button onClick={handleLogout} style={logoutBtn}>Logout</button>
                 </>
               ) : (
