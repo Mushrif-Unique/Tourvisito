@@ -10,30 +10,60 @@ import Trips from "./pages/Trips";
 import Booking from "./pages/Booking";
 import AIItinerary from "./pages/AIItinerary";
 
+/* ✅ AUTH CHECK */
+const isAuthenticated = () => {
+  return !!localStorage.getItem("token");
+};
+
+/* ✅ PROTECTED ROUTE */
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("Please login to access this page");
-    return <Navigate to="/login" />;
-  }
-  return children;
+  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+};
+
+/* ✅ PUBLIC ROUTE (Login/Register) */
+const PublicRoute = ({ children }) => {
+  return isAuthenticated() ? <Navigate to="/" replace /> : children;
 };
 
 const App = () => {
   return (
     <Router>
       <div style={appShell}>
-        <Navbar /> {/* Stretches to full width, but content inside should be centered */}
-        
-        {/* MAIN CONTENT WRAPPER - This fixes your left-align issue */}
+        <Navbar />
+
         <main style={mainContent}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            {/* 🔒 Protected Home */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 🌐 Public Routes */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+
             <Route path="/trips" element={<Trips />} />
 
-            {/* Protected routes */}
+            {/* 🔒 Protected Routes */}
             <Route
               path="/booking"
               element={
@@ -51,7 +81,7 @@ const App = () => {
               }
             />
 
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 
@@ -61,23 +91,19 @@ const App = () => {
   );
 };
 
-/* --- LAYOUT STYLES --- */
-
+/* --- STYLES --- */
 const appShell = {
   display: "flex",
   flexDirection: "column",
   minHeight: "100vh",
   width: "100%",
-  backgroundColor: "var(--color-bg)",
 };
 
 const mainContent = {
-  flex: "1 0 auto", // Pushes footer to the bottom
-  width: "100%",
-  maxWidth: "1440px", // Limits the width on giant monitors
-  margin: "0 auto",    // THE MAGIC FIX: Centers the content horizontally
-  padding: "0 20px",   // Prevents content from touching edges on mobile
-  boxSizing: "border-box",
+  flex: "1",
+  maxWidth: "1440px",
+  margin: "0 auto",
+  padding: "0 20px",
 };
 
 export default App;

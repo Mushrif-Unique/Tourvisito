@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import API, { setAuthToken } from "../api/api";
-import Footer from "../components/Footer";
-
+import { useNavigate } from "react-router-dom";
+import API from "../api/api";
 
 const Register = () => {
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,20 +16,17 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { data } = await API.post("/users/register", {
+      await API.post("/users/register", {
         name,
         email,
         password,
         role,
       });
 
-      // 🔐 Store token if backend sends it
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        setAuthToken(data.token);
-      }
-
-      alert("Registration successful!");
+      alert("Registration successful! Please login.");
+      
+      // ✅ Redirect to login
+      navigate("/login", { replace: true });
     } catch (err) {
       console.error(err);
       alert("Registration failed");
@@ -69,18 +67,11 @@ const Register = () => {
           Create Account
         </h1>
 
-        <p
-          style={{
-            textAlign: "center",
-            color: "#555",
-            marginBottom: "30px",
-          }}
-        >
+        <p style={{ textAlign: "center", color: "#555", marginBottom: "30px" }}>
           Join TourVisito and start your journey
         </p>
 
         <form onSubmit={handleRegister}>
-          {/* NAME */}
           <div style={fieldStyle}>
             <label style={labelStyle}>Full Name</label>
             <input
@@ -93,7 +84,6 @@ const Register = () => {
             />
           </div>
 
-          {/* EMAIL */}
           <div style={fieldStyle}>
             <label style={labelStyle}>Email</label>
             <input
@@ -106,7 +96,6 @@ const Register = () => {
             />
           </div>
 
-          {/* PASSWORD */}
           <div style={fieldStyle}>
             <label style={labelStyle}>Password</label>
             <input
@@ -119,7 +108,6 @@ const Register = () => {
             />
           </div>
 
-          {/* ROLE */}
           <div style={fieldStyle}>
             <label style={labelStyle}>Register As</label>
             <select
@@ -132,7 +120,6 @@ const Register = () => {
             </select>
           </div>
 
-          {/* BUTTON */}
           <button
             type="submit"
             disabled={loading}
@@ -156,9 +143,7 @@ const Register = () => {
 };
 
 /* STYLES */
-const fieldStyle = {
-  marginBottom: "20px",
-};
+const fieldStyle = { marginBottom: "20px" };
 
 const labelStyle = {
   display: "block",

@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-
-// Mock API for demo - replace with your actual API import
-const API = {
-  post: async (url, data) => {
-    // This is a mock - use your actual API call
-    return { data: { itinerary: "Sample response..." } };
-  }
-};
+import API from "../api/api";
 
 const AIItinerary = () => {
   const [formData, setFormData] = useState({
@@ -22,52 +15,25 @@ const AIItinerary = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const generateAI = (e) => {
+  const generateAI = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setItinerary(null);
 
-    // Demo itinerary for preview
-    setTimeout(() => {
-      setItinerary(`## 4-Day Sri Lanka Cultural Immersion Itinerary
+    try {
+      const response = await API.post("/ai/ai-generate", {
+        destination: formData.destination,
+        days: formData.days,
+        budget: formData.budget,
+      });
 
-**Budget Level:** Medium (approx. USD 100-200 per person per day)
-
----
-
-### Day 1: Arrival, Dambulla Caves & Sigiriya Area
-
-**Morning/Afternoon:** Arrive at Bandaranaike International Airport (BIA), Colombo. Your pre-booked private driver will meet you.
-**Travel:** Begin your scenic drive towards the Dambulla/Sigiriya area (approx. 3-4 hours).
-**Afternoon:** Check into your hotel. After a brief rest, head to the Dambulla Cave Temple (Golden Temple).
-**Evening:** Enjoy a traditional Sri Lankan dinner at a local restaurant.
-**Accommodation:** Comfortable guesthouse or boutique hotel in Sigiriya or Dambulla.
-**Meals:** Dinner
-
----
-
-### Day 2: Sigiriya Rock Fortress & Polonnaruwa Ancient City
-
-**Morning (Early!):** Head to Sigiriya Rock Fortress, another UNESCO World Heritage site.
-**Lunch:** Have lunch at a local restaurant near Sigiriya.
-**Afternoon:** Drive to Polonnaruwa (approx. 1-1.5 hours), Sri Lanka's second ancient capital.
-**Evening:** Return to your hotel in the Sigiriya/Dambulla area.
-**Accommodation:** Same hotel in Sigiriya or Dambulla.
-**Meals:** Breakfast, Dinner
-
----
-
-### Day 3: Kandy & Tea Plantations
-
-**Morning:** After breakfast, check out and begin your scenic drive to Kandy.
-**En Route:** Visit a Spice Garden to learn about various spices grown in Sri Lanka.
-**Afternoon (Kandy):** Visit the Temple of the Sacred Tooth Relic.
-**Evening:** Attend a Kandyan Cultural Show, featuring traditional dance performances.
-**Accommodation:** Comfortable hotel in Kandy.
-**Meals:** Breakfast, Dinner`);
+      setItinerary(response.data.itinerary);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to generate itinerary. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   // Function to parse and format the AI response

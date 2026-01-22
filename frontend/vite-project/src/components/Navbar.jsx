@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const token = localStorage.getItem("token");
 
@@ -20,6 +21,10 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  // Check if on login or register page
+  const isLoginPage = location.pathname === "/login";
+  const isRegisterPage = location.pathname === "/register";
+
   return (
     <nav style={isScrolled ? { ...navWrapper, ...navGlass } : navWrapper}>
       <div style={navContainer}>
@@ -28,21 +33,33 @@ const Navbar = () => {
           Tour<span style={{ color: "var(--color-accent)" }}>Visito</span>
         </Link>
 
-        {/* LINKS */}
+        {/* CONDITIONAL LINKS BASED ON PAGE */}
         <div style={linkGroup}>
-          <Link to="/" style={linkItem}>Home</Link>
-          <Link to="/trips" style={linkItem}>Explore</Link>
-          
-          {token ? (
+          {isLoginPage && (
+            <Link to="/register" style={registerBtn}>Sign Up</Link>
+          )}
+
+          {isRegisterPage && (
+            <Link to="/login" style={loginBtn}>Login</Link>
+          )}
+
+          {!isLoginPage && !isRegisterPage && (
             <>
-              <Link to="/ai" style={aiPill}>AI Itinerary</Link>
-              <button onClick={handleLogout} style={logoutBtn}>Logout</button>
+              <Link to="/" style={linkItem}>Home</Link>
+              <Link to="/trips" style={linkItem}>Explore</Link>
+              
+              {token ? (
+                <>
+                  <Link to="/ai" style={aiPill}>AI Itinerary</Link>
+                  <button onClick={handleLogout} style={logoutBtn}>Logout</button>
+                </>
+              ) : (
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <Link to="/login" style={linkItem}>Login</Link>
+                  <Link to="/register" style={registerBtn}>Sign Up</Link>
+                </div>
+              )}
             </>
-          ) : (
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <Link to="/login" style={linkItem}>Login</Link>
-              <Link to="/register" style={registerBtn}>Sign Up</Link>
-            </div>
           )}
         </div>
       </div>
@@ -64,8 +81,8 @@ const navWrapper = {
 
 const navGlass = {
   padding: "12px 0",
-  backgroundColor: "rgba(255, 255, 255, 0.8)", // Translucent white
-  backdropFilter: "blur(12px)",                // The "Glass" effect
+  backgroundColor: "rgba(255, 255, 255, 0.8)",
+  backdropFilter: "blur(12px)",
   WebkitBackdropFilter: "blur(12px)",
   boxShadow: "0 4px 30px rgba(0, 0, 0, 0.05)",
   borderBottom: "1px solid rgba(255, 255, 255, 0.3)",
@@ -133,6 +150,17 @@ const logoutBtn = {
   fontSize: "14px",
   fontWeight: "700",
   cursor: "pointer",
+};
+
+const loginBtn = {
+  textDecoration: "none",
+  border: "1.5px solid var(--color-primary)",
+  color: "var(--color-primary)",
+  padding: "8px 18px",
+  borderRadius: "10px",
+  fontSize: "14px",
+  fontWeight: "700",
+  display: "inline-block",
 };
 
 export default Navbar;
