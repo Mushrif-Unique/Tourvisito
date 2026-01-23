@@ -1,17 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // frontend-safe
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userRole, setUserRole] = useState("traveler"); // ✅ default traveler
+  const [userName, setUserName] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const token = localStorage.getItem("token");
 
-  // Detect scroll to toggle glass effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role || "traveler"); // ✅ fallback traveler
+        setUserName(decoded.name || "User");
+      } catch (err) {
+        console.error("Invalid token", err);
+        setUserRole("traveler");
+      }
+    }
+  }, [token]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -21,46 +34,77 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  // Check if on login or register page
   const isLoginPage = location.pathname === "/login";
   const isRegisterPage = location.pathname === "/register";
+
+  const getNavItems = () => {
+    if (!token) return null;
+
+    switch (userRole) {
+      case "admin":
+        return (
+          <>
+            <Link to="/" style={linkItem}>Dashboard</Link>
+            <Link to="/trips" style={linkItem}>All Trips</Link>
+            <Link to="/admin/bookings" style={linkItem}>All Bookings</Link>
+            <Link to="/admin/users" style={linkItem}>Users</Link>
+            <Link to="/calendar" style={calendarBtn}>📅 Calendar</Link>
+            <Link to="/ai" style={aiPill}>AI Itinerary</Link>
+          </>
+        );
+
+      case "agency":
+        return (
+          <>
+            <Link to="/" style={linkItem}>Dashboard</Link>
+            <Link to="/trips" style={linkItem}>Browse Trips</Link>
+            <Link to="/agency/my-trips" style={linkItem}>My Trips</Link>
+            <Link to="/agency/bookings" style={linkItem}>Bookings</Link>
+            <Link to="/agency/calendar" style={calendarBtn}>📅 Calendar</Link>
+            <Link to="/ai" style={aiPill}>AI Itinerary</Link>
+          </>
+        );
+
+      default: // traveler
+        return (
+          <>
+            <Link to="/" style={linkItem}>Home</Link>
+            <Link to="/trips" style={linkItem}>Explore</Link>
+            <Link to="/my-bookings" style={linkItem}>My Bookings</Link>
+            <Link to="/ai" style={aiPill}>AI Itinerary</Link>
+          </>
+        );
+    }
+  };
 
   return (
     <nav style={isScrolled ? { ...navWrapper, ...navGlass } : navWrapper}>
       <div style={navContainer}>
-        {/* LOGO */}
         <Link to="/" style={logoStyle}>
           Tour<span style={{ color: "var(--color-accent)" }}>Visito</span>
         </Link>
 
-        {/* CONDITIONAL LINKS BASED ON PAGE */}
         <div style={linkGroup}>
-          {isLoginPage && (
-            <Link to="/register" style={registerBtn}>Sign Up</Link>
-          )}
-
-          {isRegisterPage && (
-            <Link to="/login" style={loginBtn}>Login</Link>
-          )}
+          {isLoginPage && <Link to="/register" style={registerBtn}>Sign Up</Link>}
+          {isRegisterPage && <Link to="/login" style={loginBtn}>Login</Link>}
 
           {!isLoginPage && !isRegisterPage && (
-            <>
-              <Link to="/" style={linkItem}>Home</Link>
-              <Link to="/trips" style={linkItem}>Explore</Link>
-              
-              {token ? (
-                <>
-                  <Link to="/ai" style={aiPill}>AI Itinerary</Link>
-                  <Link to="/booking" style={aiPill}>Booking</Link>
+            token ? (
+              <>
+                {getNavItems()}
+                <div style={userSection}>
+                  <span style={userNameStyle}>{userName}</span>
                   <button onClick={handleLogout} style={logoutBtn}>Logout</button>
-                </>
-              ) : (
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <Link to="/login" style={linkItem}>Login</Link>
-                  <Link to="/register" style={registerBtn}>Sign Up</Link>
                 </div>
-              )}
-            </>
+              </>
+            ) : (
+              <>
+                <Link to="/" style={linkItem}>Home</Link>
+                <Link to="/trips" style={linkItem}>Explore</Link>
+                <Link to="/login" style={loginBtn}>Login</Link>
+                <Link to="/register" style={registerBtn}>Sign Up</Link>
+              </>
+            )
           )}
         </div>
       </div>
@@ -68,100 +112,19 @@ const Navbar = () => {
   );
 };
 
-/* --- PREMIUM NAV STYLES --- */
-
-const navWrapper = {
-  position: "sticky",
-  top: 0,
-  width: "100%",
-  zIndex: 1000,
-  transition: "all 0.3s ease",
-  padding: "20px 0",
-  backgroundColor: "transparent",
-};
-
-const navGlass = {
-  padding: "12px 0",
-  backgroundColor: "rgba(255, 255, 255, 0.8)",
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  boxShadow: "0 4px 30px rgba(0, 0, 0, 0.05)",
-  borderBottom: "1px solid rgba(255, 255, 255, 0.3)",
-};
-
-const navContainer = {
-  maxWidth: "1280px",
-  margin: "0 auto",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "0 40px",
-};
-
-const logoStyle = {
-  fontSize: "24px",
-  fontWeight: "850",
-  color: "var(--color-primary)",
-  textDecoration: "none",
-  letterSpacing: "-1px",
-};
-
-const linkGroup = {
-  display: "flex",
-  alignItems: "center",
-  gap: "32px",
-};
-
-const linkItem = {
-  textDecoration: "none",
-  color: "var(--color-primary)",
-  fontSize: "15px",
-  fontWeight: "600",
-  transition: "color 0.2s ease",
-};
-
-const aiPill = {
-  textDecoration: "none",
-  backgroundColor: "var(--color-primary)",
-  color: "#fff",
-  padding: "8px 20px",
-  borderRadius: "100px",
-  fontSize: "14px",
-  fontWeight: "700",
-  boxShadow: "0 10px 20px rgba(17, 38, 71, 0.2)",
-};
-
-const registerBtn = {
-  textDecoration: "none",
-  backgroundColor: "var(--color-accent)",
-  color: "#fff",
-  padding: "10px 24px",
-  borderRadius: "12px",
-  fontSize: "14px",
-  fontWeight: "700",
-  boxShadow: "0 8px 15px rgba(238, 22, 96, 0.2)",
-};
-
-const logoutBtn = {
-  background: "none",
-  border: "1.5px solid var(--color-primary)",
-  color: "var(--color-primary)",
-  padding: "8px 18px",
-  borderRadius: "10px",
-  fontSize: "14px",
-  fontWeight: "700",
-  cursor: "pointer",
-};
-
-const loginBtn = {
-  textDecoration: "none",
-  border: "1.5px solid var(--color-primary)",
-  color: "var(--color-primary)",
-  padding: "8px 18px",
-  borderRadius: "10px",
-  fontSize: "14px",
-  fontWeight: "700",
-  display: "inline-block",
-};
+/* ---------- STYLES ---------- */
+const navWrapper = { position: "sticky", top: 0, padding: "20px 0", zIndex: 1000 };
+const navGlass = { background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)" };
+const navContainer = { maxWidth: "1280px", margin: "auto", display: "flex", justifyContent: "space-between", padding: "0 40px" };
+const logoStyle = { fontSize: "24px", fontWeight: "800", textDecoration: "none", color: "#112647" };
+const linkGroup = { display: "flex", alignItems: "center", gap: "24px" };
+const linkItem = { textDecoration: "none", fontWeight: "600", color: "#112647" };
+const aiPill = { background: "#112647", color: "#fff", padding: "8px 20px", borderRadius: "20px", textDecoration: "none" };
+const calendarBtn = { background: "#667eea", color: "#fff", padding: "8px 20px", borderRadius: "12px", textDecoration: "none" };
+const registerBtn = { background: "#ee1660", color: "#fff", padding: "10px 24px", borderRadius: "12px", textDecoration: "none" };
+const loginBtn = { border: "1px solid #112647", padding: "8px 18px", borderRadius: "10px", textDecoration: "none" };
+const logoutBtn = { border: "1px solid #112647", padding: "6px 16px", borderRadius: "10px", background: "none", cursor: "pointer" };
+const userSection = { display: "flex", alignItems: "center", gap: "12px" };
+const userNameStyle = { fontWeight: "600", fontSize: "14px" };
 
 export default Navbar;
