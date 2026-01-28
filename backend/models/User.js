@@ -37,7 +37,11 @@ const userSchema = new mongoose.Schema({
   phone: String,
   profilePicture: String,
   isVerified: { type: Boolean, default: false },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+
+  // Password reset fields
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 }, { timestamps: true });
 
 // Index for faster queries

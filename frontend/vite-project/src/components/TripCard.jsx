@@ -1,8 +1,98 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api/api";
+import { jwtDecode } from "jwt-decode";
 
 const TripCard = ({ trip }) => {
   const navigate = useNavigate();
+  const [isSaved, setIsSaved] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Check if user is logged in and is a traveler
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role);
+        if (decoded.role === "traveler" && (trip._id || trip.id)) {
+          checkSavedStatus();
+        }
+      } catch (err) {
+        console.error("Error decoding token:", err);
+      }
+    }
+  }, [trip._id || trip.id]);
+
+  const checkSavedStatus = async () => {
+    try {
+      const tripId = trip._id || trip.id;
+      const { data } = await API.get(`/trips/${tripId}/saved-status`);
+      setIsSaved(data.isSaved);
+    } catch (error) {
+      // Fallback to localStorage
+      const savedTrips = JSON.parse(localStorage.getItem("savedTrips") || "[]");
+      const tripId = trip._id || trip.id;
+      setIsSaved(savedTrips.includes(String(tripId)));
+    }
+  };
+
+  const handleSaveTrip = async (e) => {
+    e.stopPropagation();
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // Not logged in - redirect to login
+      navigate("/login");
+      return;
+    }
+
+    // Check if user is traveler
+    if (userRole && userRole !== "traveler") {
+      alert("Only travelers can save trips. Please login as a traveler.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const tripId = String(trip._id || trip.id);
+      const savedTrips = JSON.parse(localStorage.getItem("savedTrips") || "[]");
+
+      if (isSaved) {
+        // Remove from saved
+        const updated = savedTrips.filter(id => id !== tripId);
+        localStorage.setItem("savedTrips", JSON.stringify(updated));
+        setIsSaved(false);
+        
+        // Try API delete as backup
+        try {
+          await API.delete(`/trips/${tripId}/save`);
+        } catch (apiError) {
+          console.log("API delete not available, using localStorage");
+        }
+      } else {
+        // Add to saved
+        if (!savedTrips.includes(tripId)) {
+          savedTrips.push(tripId);
+        }
+        localStorage.setItem("savedTrips", JSON.stringify(savedTrips));
+        setIsSaved(true);
+        
+        // Try API post as backup
+        try {
+          await API.post(`/trips/${tripId}/save`);
+        } catch (apiError) {
+          console.log("API post not available, using localStorage");
+        }
+      }
+    } catch (error) {
+      console.error("Error saving trip:", error);
+      alert("Failed to save trip. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -21,6 +111,19 @@ const TripCard = ({ trip }) => {
         <div style={{...imageContainer, backgroundImage: `url(${trip.image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80"})`}}>
           <div style={overlayGradient} />
           <div style={badgeStyle}>{trip.budget || "Value"}</div>
+          {/* Show save button for logged-in travelers or anyone if not logged in (login will be triggered) */}
+          <button 
+            onClick={handleSaveTrip}
+            disabled={loading}
+            style={{
+              ...saveBtn,
+              backgroundColor: isSaved ? "#ff1654" : "rgba(255, 255, 255, 0.9)",
+              color: isSaved ? "white" : "#112647"
+            }}
+            title={isSaved ? "Remove from favorites" : "Add to favorites"}
+          >
+            {isSaved ? "❤️" : "🤍"}
+          </button>
         </div>
       </div>
 
@@ -41,9 +144,9 @@ const TripCard = ({ trip }) => {
         <div style={footerRow}>
           <div style={priceContainer}>
             <span style={priceLabel}>Starting at</span>
-            <span style={priceAmount}>$1,299</span>
+            <span style={priceAmount}>${trip.price || "1,299"}</span>
           </div>
-          <button onClick={() => navigate("/booking")} style={bookBtn}>
+          <button onClick={() => navigate(`/trip-details/${trip._id || trip.id}`)} style={bookBtn}>
             Details
           </button>
         </div>
@@ -98,6 +201,23 @@ const badgeStyle = {
   fontWeight: "700",
   color: "var(--color-primary)",
   boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+};
+
+const saveBtn = {
+  position: "absolute",
+  top: "12px",
+  left: "12px",
+  width: "40px",
+  height: "40px",
+  borderRadius: "50%",
+  border: "none",
+  fontSize: "20px",
+  cursor: "pointer",
+  transition: "all 0.3s",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 
 const contentSection = {

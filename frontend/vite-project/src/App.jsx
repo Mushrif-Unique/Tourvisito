@@ -7,9 +7,13 @@ import Footer from "./components/Footer";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import Trips from "./pages/Trips";
+import SavedTrips from "./pages/SavedTrips";
 import Booking from "./pages/Booking";
+import TripDetails from "./pages/TripDetails";
 import AIItinerary from "./pages/AIItinerary";
 
 // User Pages
@@ -95,9 +99,13 @@ const App = () => {
             {/* 🌐 Public Routes */}
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+            <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+            <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
             {/* 🔓 Public Trips */}
             <Route path="/trips" element={<Trips />} />
+            <Route path="/trip-details/:tripId" element={<TripDetails />} />
+            <Route path="/saved-trips" element={<ProtectedRoute allowedRoles={["traveler"]}><SavedTrips /></ProtectedRoute>} />
 
             {/* 🔒 TRAVELER ROUTES */}
             <Route path="/my-bookings" element={<ProtectedRoute allowedRoles={["traveler"]}><MyBookings /></ProtectedRoute>} />

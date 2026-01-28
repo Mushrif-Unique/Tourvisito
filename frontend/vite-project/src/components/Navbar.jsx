@@ -70,6 +70,7 @@ const Navbar = () => {
           <>
             <Link to="/" style={linkItem}>Home</Link>
             <Link to="/trips" style={linkItem}>Explore</Link>
+            <Link to="/saved-trips" style={linkItem}>❤️ Saved</Link>
             <Link to="/my-bookings" style={linkItem}>My Bookings</Link>
             <Link to="/ai" style={aiPill}>AI Itinerary</Link>
           </>
@@ -122,8 +123,8 @@ const linkItem = { textDecoration: "none", fontWeight: "600", color: "#112647" }
 const aiPill = { background: "#112647", color: "#fff", padding: "8px 20px", borderRadius: "20px", textDecoration: "none" };
 const calendarBtn = { background: "#667eea", color: "#fff", padding: "8px 20px", borderRadius: "12px", textDecoration: "none" };
 const registerBtn = { background: "#ee1660", color: "#fff", padding: "10px 24px", borderRadius: "12px", textDecoration: "none" };
-const loginBtn = { border: "1px solid #112647", padding: "8px 18px", borderRadius: "10px", textDecoration: "none" };
-const logoutBtn = { border: "1px solid #112647", padding: "6px 16px", borderRadius: "10px", background: "none", cursor: "pointer" };
+const loginBtn = { border: "1px solid #112647", padding: "8px 18px", borderRadius: "10px", textDecoration: "none",color: "#112647" };
+const logoutBtn = { border: "1px solid #112647", padding: "6px 16px", borderRadius: "10px", background: "none", cursor: "pointer" ,color: "#112647"};
 const userSection = { display: "flex", alignItems: "center", gap: "12px" };
 const userNameStyle = { fontWeight: "600", fontSize: "14px" };
 

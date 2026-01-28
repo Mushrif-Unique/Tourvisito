@@ -1,4 +1,5 @@
 import Trip from "../models/Trip.js";
+import SavedTrip from "../models/SavedTrip.js";
 
 // Create Trip (Agency & Admin)
 export const createTrip = async (req, res) => {
@@ -224,6 +225,108 @@ export const getAllTripStats = async (req, res) => {
     res.status(500).json({ 
       message: "Failed to fetch statistics", 
       error: error.message 
+    });
+  }
+};
+
+// TRAVELER: Save a Trip (Add to favorites)
+export const saveTrip = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const userId = req.user.id;
+
+    // Check if trip exists
+    const trip = await Trip.findById(tripId);
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    // Check if already saved
+    const existingSave = await SavedTrip.findOne({ user: userId, trip: tripId });
+    if (existingSave) {
+      return res.status(400).json({ message: "Trip already saved" });
+    }
+
+    // Create saved trip record
+    await SavedTrip.create({ user: userId, trip: tripId });
+
+    res.status(201).json({
+      success: true,
+      message: "Trip saved successfully"
+    });
+  } catch (error) {
+    console.error("Save trip error:", error);
+    res.status(500).json({
+      message: "Failed to save trip",
+      error: error.message
+    });
+  }
+};
+
+// TRAVELER: Unsave a Trip (Remove from favorites)
+export const unsaveTrip = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const userId = req.user.id;
+
+    const savedTrip = await SavedTrip.findOneAndDelete({ user: userId, trip: tripId });
+
+    if (!savedTrip) {
+      return res.status(404).json({ message: "Saved trip not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Trip unsaved successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to unsave trip",
+      error: error.message
+    });
+  }
+};
+
+// TRAVELER: Get My Saved Trips
+export const getSavedTrips = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const savedTrips = await SavedTrip.find({ user: userId })
+      .populate('trip')
+      .sort({ createdAt: -1 });
+
+    const trips = savedTrips.map(st => st.trip);
+
+    res.json({
+      success: true,
+      count: trips.length,
+      trips
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch saved trips",
+      error: error.message
+    });
+  }
+};
+
+// TRAVELER: Check if Trip is Saved
+export const isTripSaved = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const userId = req.user.id;
+
+    const savedTrip = await SavedTrip.findOne({ user: userId, trip: tripId });
+
+    res.json({
+      success: true,
+      isSaved: !!savedTrip
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to check saved status",
+      error: error.message
     });
   }
 };

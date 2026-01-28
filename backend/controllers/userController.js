@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 // Register User
 export const register = async (req, res) => {
@@ -207,5 +208,83 @@ export const deleteUser = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete user", error: error.message });
+  }
+};
+
+// Forgot Password - Generate Reset Token
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "No account with this email found" });
+    }
+
+    // Generate reset token valid for 30 minutes
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const resetTokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpires = resetTokenExpires;
+    await user.save();
+
+    // In production, send email with reset link
+    // For now, we'll return the token in development
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/#/reset-password?token=${resetToken}`;
+
+    console.log("Password reset link:", resetLink);
+
+    res.json({
+      success: true,
+      message: "Password reset link sent to email",
+      // Remove this in production - only for development
+      resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Failed to process request", error: error.message });
+  }
+};
+
+// Reset Password - Validate Token and Update Password
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "Token and password are required" });
+    }
+
+    // Hash the provided token to compare
+    const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find user with matching token and check if it hasn't expired
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Password reset token is invalid or has expired" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update password and clear reset token
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password reset successfully"
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Failed to reset password", error: error.message });
   }
 };

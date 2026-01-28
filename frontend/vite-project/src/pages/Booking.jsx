@@ -1,12 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import API from "../api/api";
 
 const Booking = () => {
+  const location = useLocation();
   const [tripId, setTripId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [tripData, setTripData] = useState(null);
+
+  // Get trip ID from navigation state
+  useEffect(() => {
+    if (location.state?.tripId) {
+      setTripId(location.state.tripId);
+    }
+    if (location.state?.tripData) {
+      setTripData(location.state.tripData);
+    }
+  }, [location]);
 
   const handleBooking = async (e) => {
     e.preventDefault();
@@ -37,6 +50,25 @@ const Booking = () => {
           <h1 style={titleStyle}>Secure Booking</h1>
           <p style={subtitleStyle}>Complete your reservation in just a few seconds.</p>
         </div>
+
+        {/* Trip Info Display */}
+        {tripData && (
+          <div style={tripInfoBox}>
+            <h3 style={tripInfoTitle}>Trip Details</h3>
+            <div style={tripInfoRow}>
+              <span style={tripInfoLabel}>Destination:</span>
+              <span style={tripInfoValue}>{tripData.destination}</span>
+            </div>
+            <div style={tripInfoRow}>
+              <span style={tripInfoLabel}>Duration:</span>
+              <span style={tripInfoValue}>{tripData.days} Days</span>
+            </div>
+            <div style={tripInfoRow}>
+              <span style={tripInfoLabel}>Price:</span>
+              <span style={tripInfoValue}>${tripData.price}</span>
+            </div>
+          </div>
+        )}
 
         {/* Booking Form */}
         <form onSubmit={handleBooking} style={formStyle}>
@@ -235,6 +267,47 @@ const errorMsg = {
   fontWeight: "600",
   marginBottom: "16px",
   textAlign: "center",
+};
+
+const tripInfoBox = {
+  backgroundColor: "#f0f4ff",
+  border: "2px solid #667eea",
+  borderRadius: "12px",
+  padding: "16px",
+  marginBottom: "24px",
+};
+
+const tripInfoTitle = {
+  fontSize: "14px",
+  fontWeight: "700",
+  color: "#667eea",
+  margin: "0 0 12px 0",
+  textTransform: "uppercase",
+};
+
+const tripInfoRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "8px 0",
+  borderBottom: "1px solid rgba(102, 126, 234, 0.2)",
+};
+
+const tripInfoRow_last = {
+  ...tripInfoRow,
+  borderBottom: "none",
+};
+
+const tripInfoLabel = {
+  fontSize: "13px",
+  color: "#64748b",
+  fontWeight: "600",
+};
+
+const tripInfoValue = {
+  fontSize: "14px",
+  color: "#667eea",
+  fontWeight: "700",
 };
 
 export default Booking;

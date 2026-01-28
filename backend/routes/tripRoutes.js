@@ -11,7 +11,11 @@ import {
   updateTrip,
   deleteTrip,
   getMyTripStats,
-  getAllTripStats
+  getAllTripStats,
+  saveTrip,
+  unsaveTrip,
+  getSavedTrips,
+  isTripSaved
 } from "../controllers/tripController.js";
 import { protect, requireRole } from "../middleware/auth.js";
 
@@ -20,6 +24,12 @@ const router = express.Router();
 // Public routes
 router.get("/", getTrips);
 router.get("/:id", getTrip);
+
+// Traveler saved trips routes
+router.post("/:tripId/save", protect, requireRole(['traveler']), saveTrip);
+router.delete("/:tripId/save", protect, requireRole(['traveler']), unsaveTrip);
+router.get("/traveler/saved", protect, requireRole(['traveler']), getSavedTrips);
+router.get("/:tripId/saved-status", protect, requireRole(['traveler']), isTripSaved);
 
 // Agency & Admin routes
 router.post("/", protect, requireRole(['agency', 'admin']), createTrip);

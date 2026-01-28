@@ -5,7 +5,9 @@ import {
   updateProfile,
   getAllUsers,
   updateUserRole,
-  deleteUser
+  deleteUser,
+  forgotPassword,
+  resetPassword
 } from "../controllers/userController.js";
 import { protect, requireRole } from "../middleware/auth.js";
 
@@ -14,6 +16,8 @@ const router = express.Router();
 // AUTH
 router.post("/register", register);
 router.post("/login", login);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 // USER ROUTES
 router.get("/profile", protect, getProfile);

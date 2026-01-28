@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import API, { setAuthToken } from "../api/api";
 
 const Login = () => {
@@ -90,8 +90,11 @@ const Login = () => {
           </button>
         </form>
 
-        <p style={hintText}>
-          💡 Open browser console (F12) for detailed debugging info
+        <div style={forgotPasswordSection}>
+          <Link to="/forgot-password" style={forgotPasswordLink}>Forgot Password?</Link>
+        </div>
+        <p style={AboutText}>
+          Created By Nawas Mushrif © 2026
         </p>
       </div>
     </div>
@@ -104,68 +107,102 @@ const container = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  backgroundColor: "#f5f5f5",
+  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  padding: "20px",
+  position: "fixed",
+  top: "0",
+  left: "0",
+  right: "0",
+  bottom: "0",
+  width: "100%",
+  height: "100%",
 };
 
 const card = {
   width: "100%",
   maxWidth: "420px",
-  padding: "30px",
-  borderRadius: "12px",
-  backgroundColor: "#fff",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+  padding: "40px",
+  borderRadius: "20px",
+  backgroundColor: "#ffffff",
+  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
 };
 
 const title = {
   textAlign: "center",
-  fontSize: "28px",
-  color: "var(--color-primary)",
-  marginBottom: "10px",
+  fontSize: "32px",
+  fontWeight: "800",
+  color: "#112647",
+  marginBottom: "8px",
+  letterSpacing: "-0.5px",
 };
 
 const subtitle = {
   textAlign: "center",
-  marginBottom: "20px",
-  color: "#555",
+  marginBottom: "30px",
+  color: "#64748b",
+  fontSize: "14px",
+  lineHeight: "1.5",
 };
 
 const errorBox = {
-  padding: "12px",
-  marginBottom: "15px",
-  backgroundColor: "#fee",
-  color: "#c33",
-  borderRadius: "6px",
-  border: "1px solid #fcc",
-  fontSize: "14px",
+  padding: "14px 16px",
+  marginBottom: "20px",
+  backgroundColor: "#fff5f5",
+  color: "#c41e3a",
+  borderRadius: "12px",
+  border: "1px solid #feb2b2",
+  fontSize: "13px",
+  lineHeight: "1.6",
 };
 
 const input = {
   width: "100%",
-  padding: "12px",
-  marginBottom: "15px",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
+  padding: "12px 16px",
+  marginBottom: "16px",
+  borderRadius: "12px",
+  border: "1px solid #e2e8f0",
   fontSize: "14px",
   boxSizing: "border-box",
+  backgroundColor: "#f8fafc",
+  transition: "all 0.3s ease",
+  fontFamily: "inherit",
 };
 
 const button = {
   width: "100%",
-  padding: "14px",
-  backgroundColor: "var(--color-primary)",
-  color: "#fff",
+  padding: "14px 16px",
+  backgroundColor: "#112647",
+  color: "#ffffff",
   border: "none",
-  borderRadius: "6px",
+  borderRadius: "12px",
   cursor: "pointer",
   fontSize: "16px",
-  fontWeight: "600",
-  transition: "opacity 0.2s",
+  fontWeight: "700",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  boxShadow: "0 4px 15px rgba(17, 38, 71, 0.2)",
+  marginTop: "10px",
 };
 
-const hintText = {
-  marginTop: "15px",
+const forgotPasswordSection = {
+  textAlign: "center",
+  marginTop: "16px",
+  marginBottom: "20px",
+};
+
+const forgotPasswordLink = {
+  fontSize: "14px",
+  color: "#667eea",
+  textDecoration: "none",
+  fontWeight: "600",
+  transition: "color 0.3s",
+  cursor: "pointer",
+};
+
+const AboutText = {
+  marginTop: "20px",
   fontSize: "12px",
-  color: "#888",
+  color: "#94a3b8",
   textAlign: "center",
 };
 
