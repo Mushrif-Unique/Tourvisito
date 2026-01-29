@@ -9,11 +9,11 @@ const AgencyBookings = () => {
   // Mock bookings data
   const mockBookings = [
     {
-      id: "1",
+      _id: "1",
       travelerName: "John Smith",
-      tripName: "Paris City Tour",
-      tripId: "trip_1",
-      date: "2024-02-15",
+      travelerEmail: "john@example.com",
+      trip: { title: "Paris City Tour", destination: "Paris", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80" },
+      startDate: "2024-02-15",
       status: "confirmed",
       paymentStatus: "paid",
       travelers: 2,
@@ -21,11 +21,11 @@ const AgencyBookings = () => {
       createdAt: "2024-01-28"
     },
     {
-      id: "2",
+      _id: "2",
       travelerName: "Sarah Johnson",
-      tripName: "Tokyo Adventure",
-      tripId: "trip_2",
-      date: "2024-03-10",
+      travelerEmail: "sarah@example.com",
+      trip: { title: "Tokyo Adventure", destination: "Tokyo", image: "https://images.unsplash.com/photo-1540959375944-7049f642e9ba?auto=format&fit=crop&w=800&q=80" },
+      startDate: "2024-03-10",
       status: "pending",
       paymentStatus: "pending",
       travelers: 1,
@@ -33,11 +33,11 @@ const AgencyBookings = () => {
       createdAt: "2024-01-27"
     },
     {
-      id: "3",
+      _id: "3",
       travelerName: "Michael Chen",
-      tripName: "New York Escape",
-      tripId: "trip_3",
-      date: "2024-02-20",
+      travelerEmail: "michael@example.com",
+      trip: { title: "New York Escape", destination: "New York", image: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=800&q=80" },
+      startDate: "2024-02-20",
       status: "confirmed",
       paymentStatus: "paid",
       travelers: 3,
@@ -45,11 +45,11 @@ const AgencyBookings = () => {
       createdAt: "2024-01-26"
     },
     {
-      id: "4",
+      _id: "4",
       travelerName: "Emma Wilson",
-      tripName: "Paris City Tour",
-      tripId: "trip_1",
-      date: "2024-04-05",
+      travelerEmail: "emma@example.com",
+      trip: { title: "Paris City Tour", destination: "Paris", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80" },
+      startDate: "2024-04-05",
       status: "cancelled",
       paymentStatus: "refunded",
       travelers: 2,
@@ -57,16 +57,28 @@ const AgencyBookings = () => {
       createdAt: "2024-01-25"
     },
     {
-      id: "5",
+      _id: "5",
       travelerName: "David Brown",
-      tripName: "Tokyo Adventure",
-      tripId: "trip_2",
-      date: "2024-03-20",
+      travelerEmail: "david@example.com",
+      trip: { title: "Tokyo Adventure", destination: "Tokyo", image: "https://images.unsplash.com/photo-1540959375944-7049f642e9ba?auto=format&fit=crop&w=800&q=80" },
+      startDate: "2024-03-20",
       status: "confirmed",
       paymentStatus: "paid",
       travelers: 1,
       totalAmount: 1899,
       createdAt: "2024-01-24"
+    },
+    {
+      _id: "6",
+      travelerName: "Lisa Anderson",
+      travelerEmail: "lisa@example.com",
+      trip: { title: "Rome Historical Tour", destination: "Rome", image: "https://images.unsplash.com/photo-1552832860-cfde47f1835d?auto=format&fit=crop&w=800&q=80" },
+      startDate: "2024-05-12",
+      status: "confirmed",
+      paymentStatus: "paid",
+      travelers: 4,
+      totalAmount: 4796,
+      createdAt: "2024-01-23"
     }
   ];
 
@@ -77,7 +89,6 @@ const AgencyBookings = () => {
   const fetchAgencyBookings = async () => {
     setLoading(true);
     try {
-      // Try to fetch from backend, fall back to mock data
       const response = await API.get("/bookings/agency/all");
       setBookings(response.data.bookings || mockBookings);
     } catch (error) {
@@ -138,106 +149,371 @@ const AgencyBookings = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <div style={container}>
-        <h1 style={pageTitle}>All Bookings for My Trips</h1>
-        <p>Loading bookings...</p>
-      </div>
-    );
-  }
-
-  if (error && bookings.length === 0) {
-    return (
-      <div style={container}>
-        <h1 style={pageTitle}>All Bookings for My Trips</h1>
-        <p style={{ color: "red" }}>{error}</p>
-      </div>
-    );
-  }
-
   return (
-    <div style={container}>
-      <div style={headerSection}>
-        <h1 style={pageTitle}>All Bookings for My Trips</h1>
-        <p style={subtitle}>Manage and track all bookings from travelers</p>
+    <div style={pageWrapper}>
+      {/* HERO SECTION */}
+      <div style={heroSection}>
+        <div style={heroContent}>
+          <h1 style={heroTitle}>
+            Booking <span style={accentText}>Management</span>
+          </h1>
+          <p style={heroSubtitle}>
+            Manage and track all bookings from travelers for your trips
+          </p>
+        </div>
       </div>
 
-      {bookings.length === 0 ? (
+      {/* STATS SECTION */}
+      <div style={statsSection}>
+        <div style={statCard}>
+          <div style={statIcon}>📋</div>
+          <div style={statNumber}>{bookings.length}</div>
+          <div style={statLabel}>Total Bookings</div>
+        </div>
+        <div style={statCard}>
+          <div style={statIcon}>✅</div>
+          <div style={statNumber}>{bookings.filter(b => b.status === "confirmed").length}</div>
+          <div style={statLabel}>Confirmed</div>
+        </div>
+        <div style={statCard}>
+          <div style={statIcon}>💰</div>
+          <div style={statNumber}>${bookings.reduce((sum, b) => b.paymentStatus === "paid" ? sum + b.totalAmount : sum, 0).toLocaleString()}</div>
+          <div style={statLabel}>Total Revenue</div>
+        </div>
+        <div style={statCard}>
+          <div style={statIcon}>⏳</div>
+          <div style={statNumber}>${bookings.reduce((sum, b) => b.paymentStatus === "pending" ? sum + b.totalAmount : sum, 0).toLocaleString()}</div>
+          <div style={statLabel}>Pending Payment</div>
+        </div>
+      </div>
+
+      {/* HEADER */}
+      <header style={headerSection}>
+        <h2 style={sectionTitle}>
+          {loading ? "Loading..." : `${bookings.length} Booking${bookings.length !== 1 ? "s" : ""}`}
+        </h2>
+      </header>
+
+      {/* BOOKINGS GRID */}
+      {loading ? (
+        <div style={skeletonGrid}>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} style={skeletonCard}>
+              <div style={skeletonImage}></div>
+              <div style={skeletonContent}>
+                <div style={skeletonLine}></div>
+                <div style={{...skeletonLine, width: '60%'}}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
         <div style={emptyState}>
-          <p style={emptyStateIcon}>📭</p>
-          <p style={emptyStateText}>No bookings yet</p>
+          <div style={emptyIcon}>❌</div>
+          <h3 style={emptyTitle}>Oops! Something went wrong</h3>
+          <p style={emptyText}>{error}</p>
+        </div>
+      ) : bookings.length === 0 ? (
+        <div style={emptyState}>
+          <div style={emptyIcon}>📭</div>
+          <h3 style={emptyTitle}>No Bookings Yet</h3>
+          <p style={emptyText}>When travelers book your trips, they'll appear here.</p>
         </div>
       ) : (
-        <div style={tableWrapper}>
-          <table style={table}>
-            <thead>
-              <tr style={tableHeader}>
-                <th style={tableCell}>Traveler Name</th>
-                <th style={tableCell}>Trip Name</th>
-                <th style={tableCell}>Date</th>
-                <th style={tableCell}>Travelers</th>
-                <th style={tableCell}>Amount</th>
-                <th style={tableCell}>Status</th>
-                <th style={tableCell}>Payment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((booking) => (
-                <tr key={booking.id} style={tableRow}>
-                  <td style={tableCell}>{booking.travelerName}</td>
-                  <td style={tableCell}>{booking.tripName}</td>
-                  <td style={tableCell}>{formatDate(booking.date)}</td>
-                  <td style={tableCell}>{booking.travelers}</td>
-                  <td style={tableCell}>
-                    <strong>${booking.totalAmount.toLocaleString()}</strong>
-                  </td>
-                  <td style={tableCell}>{getStatusBadge(booking.status)}</td>
-                  <td style={tableCell}>{getPaymentBadge(booking.paymentStatus)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={bookingsGrid}>
+          {bookings.map((booking) => (
+            <div key={booking._id || booking.id} style={bookingCard}>
+              <div style={cardImageSection}>
+                <img 
+                  src={booking.trip?.image || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80"} 
+                  alt={booking.trip?.title || "Trip"}
+                  style={cardImage}
+                />
+                <div style={cardImageOverlay}>
+                  {getStatusBadge(booking.status)}
+                </div>
+              </div>
+              <div style={cardContent}>
+                <h3 style={cardTitle}>{booking.trip?.title || "Trip"}</h3>
+                <p style={cardSubtitle}>📍 {booking.trip?.destination || "Unknown"}</p>
+                
+                <div style={bookingInfo}>
+                  <div style={infoRow}>
+                    <span style={infoLabel}>Traveler:</span>
+                    <span style={infoValue}>{booking.travelerName}</span>
+                  </div>
+                  <div style={infoRow}>
+                    <span style={infoLabel}>Date:</span>
+                    <span style={infoValue}>{formatDate(booking.startDate)}</span>
+                  </div>
+                  <div style={infoRow}>
+                    <span style={infoLabel}>Travelers:</span>
+                    <span style={infoValue}>{booking.travelers}</span>
+                  </div>
+                  <div style={infoRow}>
+                    <span style={infoLabel}>Amount:</span>
+                    <span style={priceValue}>${booking.totalAmount?.toLocaleString()}</span>
+                  </div>
+                  <div style={infoRow}>
+                    <span style={infoLabel}>Payment:</span>
+                    {getPaymentBadge(booking.paymentStatus)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      <div style={statsSection}>
-        <div style={statCard}>
-          <p style={statLabel}>Total Bookings</p>
-          <p style={statValue}>{bookings.length}</p>
-        </div>
-        <div style={statCard}>
-          <p style={statLabel}>Confirmed</p>
-          <p style={statValue}>{bookings.filter(b => b.status === "confirmed").length}</p>
-        </div>
-        <div style={statCard}>
-          <p style={statLabel}>Total Revenue</p>
-          <p style={statValue}>${bookings.reduce((sum, b) => b.paymentStatus === "paid" ? sum + b.totalAmount : sum, 0).toLocaleString()}</p>
-        </div>
-        <div style={statCard}>
-          <p style={statLabel}>Pending Payment</p>
-          <p style={statValue}>${bookings.reduce((sum, b) => b.paymentStatus === "pending" ? sum + b.totalAmount : sum, 0).toLocaleString()}</p>
-        </div>
-      </div>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };
 
-const container = { padding: "40px 20px", maxWidth: "1400px", margin: "0 auto" };
-const headerSection = { marginBottom: "40px" };
-const pageTitle = { fontSize: "32px", fontWeight: "800", color: "#112647", margin: "0 0 8px 0" };
-const subtitle = { fontSize: "14px", color: "#64748b", margin: "0" };
-const emptyState = { textAlign: "center", padding: "60px 20px" };
-const emptyStateIcon = { fontSize: "48px", margin: "0" };
-const emptyStateText = { fontSize: "16px", color: "#64748b", margin: "16px 0 0 0" };
-const tableWrapper = { overflowX: "auto", marginBottom: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" };
-const table = { width: "100%", borderCollapse: "collapse", backgroundColor: "#fff" };
-const tableHeader = { backgroundColor: "#f8fafc", borderBottom: "2px solid #e2e8f0" };
-const tableRow = { borderBottom: "1px solid #e2e8f0", transition: "background-color 0.3s" };
-const tableCell = { padding: "16px", textAlign: "left", fontSize: "14px", color: "#495057" };
-const statsSection = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" };
-const statCard = { padding: "24px", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", textAlign: "center" };
-const statLabel = { fontSize: "13px", color: "#64748b", textTransform: "uppercase", margin: "0", fontWeight: "600" };
-const statValue = { fontSize: "28px", fontWeight: "800", color: "#112647", margin: "8px 0 0 0" };
+/* --- STYLES --- */
+const pageWrapper = {
+  minHeight: "100vh",
+  backgroundColor: "#f8fafc",
+  paddingBottom: "100px",
+};
+
+const heroSection = {
+  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  padding: "60px 5% 80px 5%",
+  color: "#fff",
+  textAlign: "center",
+};
+
+const heroContent = {
+  maxWidth: "700px",
+  margin: "0 auto",
+};
+
+const heroTitle = {
+  fontSize: "clamp(32px, 5vw, 48px)",
+  fontWeight: "900",
+  marginBottom: "16px",
+  letterSpacing: "-0.03em",
+};
+
+const accentText = {
+  background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
+const heroSubtitle = {
+  fontSize: "18px",
+  opacity: "0.95",
+  margin: "0",
+  lineHeight: "1.6",
+};
+
+const statsSection = {
+  maxWidth: "1400px",
+  margin: "-40px auto 60px auto",
+  padding: "0 5%",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+  gap: "20px",
+  position: "relative",
+  zIndex: 10,
+};
+
+const statCard = {
+  backgroundColor: "#fff",
+  padding: "24px",
+  borderRadius: "16px",
+  textAlign: "center",
+  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+  border: "1px solid #e2e8f0",
+};
+
+const statIcon = {
+  fontSize: "32px",
+  marginBottom: "8px",
+};
+
+const statNumber = {
+  fontSize: "28px",
+  fontWeight: "800",
+  color: "#667eea",
+  marginBottom: "4px",
+};
+
+const statLabel = {
+  fontSize: "13px",
+  color: "#64748b",
+  fontWeight: "600",
+  textTransform: "uppercase",
+};
+
+const headerSection = {
+  maxWidth: "1400px",
+  margin: "0 auto 30px auto",
+  padding: "0 5%",
+};
+
+const sectionTitle = {
+  fontSize: "28px",
+  fontWeight: "800",
+  color: "#1e293b",
+  marginBottom: "8px",
+};
+
+const bookingsGrid = {
+  maxWidth: "1400px",
+  margin: "0 auto",
+  padding: "0 5%",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+  gap: "30px",
+};
+
+const bookingCard = {
+  backgroundColor: "#fff",
+  borderRadius: "20px",
+  overflow: "hidden",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+  transition: "all 0.3s ease",
+  animation: "slideUp 0.5s ease",
+};
+
+const cardImageSection = {
+  position: "relative",
+  height: "180px",
+  overflow: "hidden",
+};
+
+const cardImage = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+};
+
+const cardImageOverlay = {
+  position: "absolute",
+  top: "12px",
+  right: "12px",
+};
+
+const cardContent = {
+  padding: "20px",
+};
+
+const cardTitle = {
+  fontSize: "18px",
+  fontWeight: "700",
+  color: "#1e293b",
+  marginBottom: "4px",
+};
+
+const cardSubtitle = {
+  fontSize: "14px",
+  color: "#64748b",
+  marginBottom: "16px",
+};
+
+const bookingInfo = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+};
+
+const infoRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+
+const infoLabel = {
+  fontSize: "13px",
+  color: "#64748b",
+  fontWeight: "500",
+};
+
+const infoValue = {
+  fontSize: "13px",
+  color: "#1e293b",
+  fontWeight: "600",
+};
+
+const priceValue = {
+  fontSize: "16px",
+  fontWeight: "800",
+  color: "#059669",
+};
+
+const skeletonGrid = {
+  maxWidth: "1400px",
+  margin: "0 auto",
+  padding: "0 5%",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+  gap: "30px",
+};
+
+const skeletonCard = {
+  backgroundColor: "#fff",
+  borderRadius: "20px",
+  overflow: "hidden",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+};
+
+const skeletonImage = {
+  height: "180px",
+  backgroundColor: "#e2e8f0",
+  animation: "pulse 1.5s infinite ease-in-out",
+};
+
+const skeletonContent = {
+  padding: "20px",
+};
+
+const skeletonLine = {
+  height: "16px",
+  backgroundColor: "#e2e8f0",
+  borderRadius: "8px",
+  marginBottom: "12px",
+  animation: "pulse 1.5s infinite ease-in-out",
+};
+
+const emptyState = {
+  maxWidth: "500px",
+  margin: "60px auto",
+  textAlign: "center",
+  padding: "60px 40px",
+  backgroundColor: "#fff",
+  borderRadius: "24px",
+  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+};
+
+const emptyIcon = {
+  fontSize: "56px",
+  marginBottom: "16px",
+};
+
+const emptyTitle = {
+  fontSize: "24px",
+  fontWeight: "800",
+  color: "#1e293b",
+  marginBottom: "8px",
+};
+
+const emptyText = {
+  fontSize: "16px",
+  color: "#64748b",
+  margin: "0",
+};
 
 export default AgencyBookings;

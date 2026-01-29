@@ -7,7 +7,8 @@ const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("traveler"); // ✅ default traveler
+  const [role, setRole] = useState("traveler");
+  const [agencyName, setAgencyName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
@@ -15,11 +16,18 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await API.post("/users/register", { name, email, password, role });
+      const userData = { name, email, password, role };
+      
+      // Only include agencyName for agency accounts
+      if (role === "agency") {
+        userData.agencyName = agencyName;
+      }
+      
+      await API.post("/users/register", userData);
       alert("Registration successful! Please login.");
       navigate("/login", { replace: true });
     } catch (err) {
-      alert("Registration failed");
+      alert(err.response?.data?.message || "Registration failed");
       console.error(err);
     } finally {
       setLoading(false);
@@ -80,6 +88,20 @@ const Register = () => {
               <option value="agency">Travel Agency</option>
             </select>
           </div>
+
+          {role === "agency" && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Agency Name *</label>
+              <input
+                type="text"
+                placeholder="Enter your agency name"
+                value={agencyName}
+                onChange={(e) => setAgencyName(e.target.value)}
+                required={role === "agency"}
+                style={inputStyle}
+              />
+            </div>
+          )}
 
           <button type="submit" disabled={loading} style={buttonStyle}>
             {loading ? "Creating account..." : "Register"}

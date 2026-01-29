@@ -8,7 +8,8 @@ const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("traveler"); // ✅ default traveler
+  const [role, setRole] = useState("traveler");
+  const [agencyName, setAgencyName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
@@ -16,18 +17,19 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await API.post("/users/register", {
-        name,
-        email,
-        password,
-        role,
-      });
+      const userData = { name, email, password, role };
+      
+      if (role === "agency") {
+        userData.agencyName = agencyName;
+      }
+      
+      await API.post("/users/register", userData);
 
       alert("Registration successful! Please login.");
       navigate("/login", { replace: true });
     } catch (err) {
       console.error(err);
-      alert("Registration failed");
+      alert(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -58,10 +60,24 @@ const Register = () => {
           <div style={fieldStyle}>
             <label style={labelStyle}>Register As</label>
             <select value={role} onChange={(e) => setRole(e.target.value)} style={inputStyle}>
-              <option value="traveler">Traveler</option> {/* ✅ fixed */}
+              <option value="traveler">Traveler</option>
               <option value="agency">Travel Agency</option>
             </select>
           </div>
+
+          {role === "agency" && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Agency Name *</label>
+              <input 
+                type="text" 
+                placeholder="Enter your agency name" 
+                value={agencyName} 
+                onChange={(e) => setAgencyName(e.target.value)} 
+                required={role === "agency"} 
+                style={inputStyle} 
+              />
+            </div>
+          )}
 
           <button type="submit" disabled={loading} style={{ width: "100%", padding: "14px", backgroundColor: "var(--color-primary)", color: "#fff", fontSize: "16px", border: "none", borderRadius: "6px", cursor: loading ? "not-allowed" : "pointer" }}>
             {loading ? "Creating account..." : "Register"}
