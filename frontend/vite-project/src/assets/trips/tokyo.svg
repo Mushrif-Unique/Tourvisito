@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Tokyo at dusk</title><desc id="desc">A stylised Tokyo skyline with Mount Fuji and a red sun.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#112647"/><stop offset="1" stop-color="#6b4e8f"/></linearGradient><linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#263f63"/><stop offset="1" stop-color="#0b1930"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#sky)"/><circle cx="870" cy="190" r="105" fill="#ee1660" opacity=".9"/><path d="M0 510 300 390l130 96 165-188 174 194 145-132 285 150v290H0Z" fill="#e8d7e3" opacity=".95"/><path d="m465 442 130-144 126 140-67-27-58 38Z" fill="#fff"/>
+  <path d="M0 562h1200v238H0z" fill="url(#ground)"/><g fill="#172d4f"><path d="M65 415h105v162H65zM195 355h128v222H195zM347 445h90v132h-90zM767 383h116v194H767zM905 334h114v243H905zM1042 426h92v151h-92z"/></g><g fill="#ffd3e3"><path d="M88 446h18v20H88zm38 0h18v20h-18zm94-54h22v22h-22zm43 0h22v22h-22zm534 27h20v21h-20zm48 0h20v21h-20zm90-54h22v22h-22zm46 0h22v22h-22z"/></g>
+  <path d="M560 580h68v-175h-68z" fill="#ee1660"/><path d="M573 405h42l-21-76z" fill="#ee1660"/><path d="M0 663c175-40 342-40 507 0 190 46 410 45 693-5v142H0Z" fill="#091426" opacity=".65"/>
+</svg>

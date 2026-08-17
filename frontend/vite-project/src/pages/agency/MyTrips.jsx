@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import API from "../../api/api";
+import { getTripFallbackImage, getTripImage } from "../../utils/tripImages";
 
 const AgencyTrips = () => {
   const [trips, setTrips] = useState([]);
@@ -141,14 +142,16 @@ const AgencyTrips = () => {
         <div style={tripsGrid}>
           {trips.map((trip) => (
             <div key={trip._id} style={tripCardStyle}>
-              <div
-                style={{
-                  ...tripImage,
-                  backgroundImage: `url(${
-                    trip.image || "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80"
-                  })`,
-                }}
-              >
+              <div style={tripImage}>
+                <img
+                  src={getTripImage(trip)}
+                  alt={trip.title || `${trip.destination || "Travel"} trip`}
+                  style={tripImageElement}
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = getTripFallbackImage(trip);
+                  }}
+                />
                 <span style={budgetBadge}>{trip.budget}</span>
               </div>
               <div style={tripContent}>
@@ -423,6 +426,14 @@ const tripImage = {
   backgroundSize: "cover",
   backgroundPosition: "center",
   position: "relative",
+  overflow: "hidden",
+};
+
+const tripImageElement = {
+  width: "100%",
+  height: "100%",
+  display: "block",
+  objectFit: "cover",
 };
 
 const budgetBadge = {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/api";
+import { getTripFallbackImage, getTripImage } from "../utils/tripImages";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -217,9 +218,13 @@ const MyBookings = () => {
             <div key={booking._id} style={bookingCard}>
               <div style={cardImageSection}>
                 <img 
-                  src={booking.trip?.image || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80"} 
+                  src={getTripImage(booking.trip)}
                   alt={booking.trip?.title || "Trip"}
                   style={cardImage}
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = getTripFallbackImage(booking.trip);
+                  }}
                 />
                 <div style={cardImageOverlay}>
                   {getStatusBadge(booking.status)}

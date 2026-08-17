@@ -1,315 +1,84 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import API from "../api/api";
 
-const AIItinerary = () => {
-  const [formData, setFormData] = useState({
-    destination: "",
-    days: "",
-    budget: "Medium",
+const BUDGET_OPTIONS = [
+  { value: "Economy — USD $100 per traveler per day", name: "Economy", amount: "$100", detail: "per traveler / day" },
+  { value: "Comfort — USD $250 per traveler per day", name: "Comfort", amount: "$250", detail: "per traveler / day" },
+  { value: "Luxury — USD $500 per traveler per day", name: "Luxury", amount: "$500", detail: "per traveler / day" },
+];
+
+const cleanMarkdown = (value = "") => value.replace(/\*\*/g, "").replace(/`/g, "").trim();
+
+const parseItinerary = (text) => {
+  const result = { intro: [], days: [], sections: [] };
+  let currentDay = null;
+  let currentSection = null;
+
+  String(text || "").split(/\r?\n/).forEach((sourceLine) => {
+    const line = sourceLine.trim();
+    if (!line || /^---+$/.test(line)) return;
+    const plain = cleanMarkdown(line);
+    const dayMatch = plain.match(/^(?:day\s*)?(\d+)\s*[:.)-]\s*(.*)$/i) || plain.match(/^day\s*(\d+)\s*(.*)$/i);
+    const explicitDay = plain.match(/^day\s*(\d+)\b[\s:—-]*(.*)$/i);
+    if (explicitDay || (/^#{1,4}\s*/.test(line) && /day\s*\d+/i.test(plain))) {
+      const match = explicitDay || plain.match(/day\s*(\d+)\b[\s:—-]*(.*)$/i);
+      currentDay = { number: match?.[1] || result.days.length + 1, title: match?.[2] || "Your plan", items: [] };
+      result.days.push(currentDay); currentSection = null; return;
+    }
+    if (dayMatch && !currentDay) {
+      currentDay = { number: dayMatch[1], title: dayMatch[2] || "Your plan", items: [] };
+      result.days.push(currentDay); currentSection = null; return;
+    }
+    if (/^#{1,4}\s+/.test(line)) {
+      currentSection = { title: plain.replace(/^#+\s*/, ""), items: [] }; result.sections.push(currentSection); return;
+    }
+    const item = { text: plain, type: /^[-*•]\s+|^\d+[.)]\s+/.test(plain) ? "bullet" : "text" };
+    item.text = item.text.replace(/^[-*•]\s+|^\d+[.)]\s+/, "");
+    const label = item.text.match(/^([^:]{2,28}):\s+(.+)$/);
+    if (label) { item.type = "label"; item.label = label[1]; item.text = label[2]; }
+    if (currentDay) currentDay.items.push(item);
+    else if (currentSection) currentSection.items.push(item);
+    else result.intro.push(item);
   });
-  const [itinerary, setItinerary] = useState(null);
+  return result;
+};
+
+const ItineraryItem = ({ item }) => item.type === "label" ? <div className="ai-detail"><strong>{item.label}</strong><span>{item.text}</span></div> : <li className={item.type === "bullet" ? "ai-bullet" : "ai-text"}>{item.text}</li>;
+
+const AIItinerary = () => {
+  const [formData, setFormData] = useState({ destination: "", days: "", budget: BUDGET_OPTIONS[1].value });
+  const [itinerary, setItinerary] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const parsed = useMemo(() => parseItinerary(itinerary), [itinerary]);
+  const selectedBudget = BUDGET_OPTIONS.find((item) => item.value === formData.budget) || BUDGET_OPTIONS[1];
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const generateAI = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setItinerary(null);
-
+  const generateAI = async (event) => {
+    event.preventDefault(); setLoading(true); setError(""); setItinerary("");
     try {
-      const response = await API.post("/ai/ai-generate", {
-        destination: formData.destination,
-        days: formData.days,
-        budget: formData.budget,
-      });
-
-      setItinerary(response.data.itinerary);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to generate itinerary. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+      const response = await API.post("/ai/ai-generate", formData);
+      setItinerary(response.data.itinerary || "");
+    } catch (err) { setError(err.response?.data?.message || "Failed to generate an itinerary. Please try again."); }
+    finally { setLoading(false); }
   };
 
-  // Function to parse and format the AI response
-  const formatItinerary = (text) => {
-    if (!text) return null;
-
-    const lines = text.split('\n');
-    const formattedContent = [];
-    let currentSection = null;
-
-    lines.forEach((line) => {
-      const trimmedLine = line.trim();
-      
-      if (!trimmedLine) return;
-
-      if (trimmedLine.startsWith('## ')) {
-        if (currentSection) formattedContent.push(currentSection);
-        currentSection = {
-          type: 'main-heading',
-          content: trimmedLine.replace('## ', ''),
-          items: []
-        };
-      }
-      else if (trimmedLine.startsWith('### ')) {
-        if (currentSection) formattedContent.push(currentSection);
-        currentSection = {
-          type: 'day-heading',
-          content: trimmedLine.replace('### ', ''),
-          items: []
-        };
-      }
-      else if (trimmedLine.startsWith('**') && trimmedLine.includes(':**')) {
-        const parts = trimmedLine.split(':**');
-        const label = parts[0].replace(/\*\*/g, '');
-        const value = parts[1]?.trim() || '';
-        if (currentSection) {
-          currentSection.items.push({ type: 'labeled', label, value });
-        }
-      }
-      else if (trimmedLine.startsWith('*   ') || trimmedLine.startsWith('* ')) {
-        const content = trimmedLine.replace(/^\*\s+/, '');
-        if (currentSection) {
-          currentSection.items.push({ type: 'bullet', content });
-        }
-      }
-      else if (trimmedLine === '---') {
-        if (currentSection) formattedContent.push(currentSection);
-        currentSection = null;
-        formattedContent.push({ type: 'divider' });
-      }
-      else {
-        if (currentSection) {
-          currentSection.items.push({ type: 'text', content: trimmedLine });
-        } else {
-          formattedContent.push({ type: 'paragraph', content: trimmedLine });
-        }
-      }
-    });
-
-    if (currentSection) formattedContent.push(currentSection);
-    return formattedContent;
-  };
-
-  const renderItem = (item, index) => {
-    if (item.type === 'labeled') {
-      return (
-        <div key={index} style={styles.labeledItem}>
-          <span style={styles.label}>{item.label}:</span>
-          <span style={styles.value}>{item.value}</span>
-        </div>
-      );
-    }
-
-    if (item.type === 'bullet') {
-      return (
-        <div key={index} style={styles.bulletItem}>
-          <span style={styles.bulletPoint}>•</span>
-          <span style={styles.bulletText}>{item.content.replace(/\*\*/g, '')}</span>
-        </div>
-      );
-    }
-
-    if (item.type === 'text') {
-      return <p key={index} style={styles.textItem}>{item.content}</p>;
-    }
-
-    return null;
-  };
-
-  const renderFormattedItinerary = () => {
-    const formatted = formatItinerary(itinerary);
-    if (!formatted) return null;
-
-    return formatted.map((section, idx) => {
-      if (section.type === 'divider') {
-        return <div key={idx} style={styles.divider}></div>;
-      }
-
-      if (section.type === 'paragraph') {
-        return <p key={idx} style={styles.paragraph}>{section.content}</p>;
-      }
-
-      if (section.type === 'main-heading') {
-        return (
-          <div key={idx} style={styles.mainSection}>
-            <h2 style={styles.mainHeading}>
-              <span style={styles.headingIcon}>📋</span>
-              {section.content}
-            </h2>
-            <div style={styles.sectionContent}>
-              {section.items.map((item, i) => renderItem(item, i))}
-            </div>
-          </div>
-        );
-      }
-
-      if (section.type === 'day-heading') {
-        const dayNumber = section.content.match(/Day (\d+)/)?.[1];
-        return (
-          <div key={idx} style={styles.dayCard}>
-            <div style={styles.dayHeader}>
-              <div style={styles.dayBadge}>Day {dayNumber}</div>
-              <h3 style={styles.dayTitle}>{section.content.replace(/Day \d+:\s*/, '')}</h3>
-            </div>
-            <div style={styles.dayContent}>
-              {section.items.map((item, i) => renderItem(item, i))}
-            </div>
-          </div>
-        );
-      }
-
-      return null;
-    });
-  };
-
-  return (
-    <div style={styles.container}>
-      <div style={styles.glassCard}>
-        <div style={styles.headerSection}>
-          <div style={styles.iconBadge}>🌍</div>
-          <h1 style={styles.title}>AI Trip Planner</h1>
-          <p style={styles.subtitle}>Input your preferences and let our AI curate your perfect escape.</p>
-        </div>
-
-        {error && <div style={styles.errorBox}>{error}</div>}
-
-        <div style={styles.formStyle}>
-          <div style={styles.inputRow}>
-            <div style={styles.inputGroup}>
-              <label style={styles.labelInput}>Destination</label>
-              <input
-                name="destination"
-                placeholder="e.g. Paris, France"
-                value={formData.destination}
-                onChange={handleInputChange}
-                style={styles.inputField}
-              />
-            </div>
-            <div style={styles.inputGroup}>
-              <label style={styles.labelInput}>Duration (Days)</label>
-              <input
-                name="days"
-                type="number"
-                placeholder="e.g. 5"
-                value={formData.days}
-                onChange={handleInputChange}
-                style={styles.inputField}
-              />
-            </div>
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.labelInput}>Budget Level</label>
-            <select
-              name="budget"
-              value={formData.budget}
-              onChange={handleInputChange}
-              style={styles.inputField}
-            >
-              <option value="Economy">Economy (Budget Friendly)</option>
-              <option value="Medium">Medium (Balanced)</option>
-              <option value="Luxury">Luxury (Premium Experience)</option>
-            </select>
-          </div>
-
-          <button 
-            onClick={generateAI} 
-            disabled={loading} 
-            style={loading ? {...styles.button, ...styles.btnDisabled} : styles.button}
-          >
-            {loading ? <div style={styles.spinner}></div> : "Generate Custom Itinerary"}
-          </button>
-        </div>
-
-        {itinerary && (
-          <div style={styles.resultSection}>
-            <div style={styles.resultHeader}>
-              <h3 style={styles.resultTitle}>
-                <span style={styles.resultIcon}>✨</span>
-                Your Personalized Itinerary for {formData.destination || "Your Destination"}
-              </h3>
-              <button style={styles.downloadBtn} onClick={() => window.print()}>
-                📄 Download PDF
-              </button>
-            </div>
-            <div style={styles.itineraryBox}>
-              {renderFormattedItinerary()}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
+  return <main className="ai-page"><section className="ai-hero"><p className="ai-eyebrow">TOURVISITO INTELLIGENCE</p><h1>Build a trip with a plan,<br /><em>not a blank page.</em></h1><p>Get a clear day-by-day itinerary, shaped around your destination, time, and real USD budget.</p></section>
+    <section className="ai-workspace"><form className="ai-form" onSubmit={generateAI}>
+      <div className="ai-form-header"><span>01</span><div><h2>Tell us the essentials</h2><p>We’ll turn them into an organized route.</p></div></div>
+      {error && <div className="ai-error" role="alert">{error}</div>}
+      <label>Destination<input name="destination" placeholder="Paris, France" value={formData.destination} onChange={(event) => setFormData({ ...formData, destination: event.target.value })} required /></label>
+      <label>Duration (days)<input name="days" type="number" min="1" max="30" placeholder="5" value={formData.days} onChange={(event) => setFormData({ ...formData, days: event.target.value })} required /></label>
+      <fieldset><legend>Daily budget, in USD</legend><div className="ai-budget-grid">{BUDGET_OPTIONS.map((option) => <label className={`ai-budget ${formData.budget === option.value ? "is-selected" : ""}`} key={option.name}><input type="radio" name="budget" value={option.value} checked={formData.budget === option.value} onChange={(event) => setFormData({ ...formData, budget: event.target.value })} /><b>{option.name}</b><strong>{option.amount}</strong><span>{option.detail}</span></label>)}</div></fieldset>
+      <div className="ai-budget-summary">Estimated daily guide: <strong>{selectedBudget.amount} USD</strong> per traveler. Actual prices vary by destination and season.</div>
+      <button className="ai-generate" type="submit" disabled={loading}>{loading ? "Designing your itinerary…" : "Generate itinerary ✦"}</button>
+    </form>
+    <section className="ai-result" aria-live="polite">{!itinerary && !loading && <div className="ai-empty"><span>✦</span><h2>Your itinerary will appear here</h2><p>Choose a destination, duration, and a daily USD budget to begin.</p></div>}{loading && <div className="ai-empty"><div className="ai-spinner" /><h2>Mapping out your days</h2><p>Finding a balanced route and budget-aware experiences.</p></div>}{itinerary && <><header className="ai-result-header"><div><p className="ai-eyebrow">YOUR CUSTOM ROUTE</p><h2>{formData.destination}</h2><span>{formData.days} days · {selectedBudget.name} · {selectedBudget.amount} USD/day</span></div><button className="ai-print" type="button" onClick={() => window.print()}>Print plan</button></header>{parsed.intro.length > 0 && <ul className="ai-intro">{parsed.intro.map((item, index) => <ItineraryItem key={index} item={item} />)}</ul>}{parsed.sections.map((section, index) => <section className="ai-section" key={`${section.title}-${index}`}><h3>{section.title}</h3><ul>{section.items.map((item, itemIndex) => <ItineraryItem key={itemIndex} item={item} />)}</ul></section>)}<div className="ai-days">{parsed.days.map((day) => <article className="ai-day" key={`${day.number}-${day.title}`}><header><span>DAY {day.number}</span><h3>{day.title}</h3></header><ul>{day.items.map((item, index) => <ItineraryItem key={index} item={item} />)}</ul></article>)}</div></>}</section></section>
+    <style>{aiStyles}</style>
+  </main>;
 };
 
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    padding: "60px 20px",
-    backgroundColor: "#f8fafc",
-    minHeight: "90vh",
-  },
-  glassCard: {
-    width: "100%",
-    maxWidth: "1000px",
-    backgroundColor: "#fff",
-    padding: "40px",
-    borderRadius: "32px",
-    boxShadow: "0 20px 60px rgba(17, 38, 71, 0.08)",
-    border: "1px solid #f1f5f9",
-  },
-  headerSection: { textAlign: "center", marginBottom: "40px" },
-  iconBadge: { fontSize: "45px", marginBottom: "10px" },
-  title: { fontSize: "34px", fontWeight: "850", color: "#1e40af", letterSpacing: "-1px", margin: 0 },
-  subtitle: { color: "#64748b", fontSize: "16px", marginTop: "10px" },
-  formStyle: { display: "flex", flexDirection: "column", gap: "25px" },
-  inputRow: { display: "flex", gap: "20px", flexWrap: "wrap" },
-  inputGroup: { display: "flex", flexDirection: "column", flex: "1 1 200px", gap: "8px" },
-  labelInput: { fontSize: "13px", fontWeight: "700", textTransform: "uppercase", color: "#1e40af", letterSpacing: "0.5px" },
-  inputField: { padding: "15px", borderRadius: "14px", border: "1.5px solid #e2e8f0", fontSize: "16px", outline: "none", backgroundColor: "#fcfdff", boxSizing: "border-box" },
-  button: { padding: "18px", backgroundColor: "#1e40af", color: "#fff", border: "none", borderRadius: "16px", fontSize: "16px", fontWeight: "700", cursor: "pointer", marginTop: "10px", boxShadow: "0 10px 25px rgba(30, 64, 175, 0.2)", transition: "all 0.3s ease" },
-  btnDisabled: { opacity: 0.6, cursor: "not-allowed" },
-  spinner: { width: "20px", height: "20px", border: "3px solid rgba(255,255,255,0.3)", borderTop: "3px solid #fff", borderRadius: "50%", margin: "0 auto", animation: "spin 0.8s linear infinite" },
-  errorBox: { backgroundColor: "#fff5f5", color: "#c53030", padding: "16px", borderRadius: "12px", marginBottom: "20px", border: "1px solid #feb2b2", fontSize: "14px" },
-  resultSection: { marginTop: "50px", borderTop: "2px solid #f1f5f9", paddingTop: "30px" },
-  resultHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", flexWrap: "wrap", gap: "15px" },
-  resultTitle: { fontSize: "26px", fontWeight: "800", color: "#1e40af", margin: 0, display: "flex", alignItems: "center", gap: "10px" },
-  resultIcon: { fontSize: "28px" },
-  downloadBtn: { padding: "10px 20px", backgroundColor: "#f8fafc", border: "2px solid #e2e8f0", borderRadius: "12px", fontSize: "14px", fontWeight: "600", color: "#475569", cursor: "pointer", transition: "all 0.3s ease" },
-  itineraryBox: { backgroundColor: "#ffffff", padding: "0", borderRadius: "24px" },
-  mainSection: { marginBottom: "40px" },
-  mainHeading: { fontSize: "24px", fontWeight: "800", color: "#1e293b", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px", paddingBottom: "15px", borderBottom: "3px solid #e0f2fe" },
-  headingIcon: { fontSize: "26px" },
-  sectionContent: { paddingLeft: "0" },
-  dayCard: { backgroundColor: "#f8faff", border: "2px solid #e0f2fe", borderRadius: "20px", padding: "30px", marginBottom: "25px", boxShadow: "0 4px 15px rgba(59, 130, 246, 0.08)" },
-  dayHeader: { marginBottom: "20px" },
-  dayBadge: { display: "inline-block", backgroundColor: "#3b82f6", color: "#fff", padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: "700", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.5px" },
-  dayTitle: { fontSize: "20px", fontWeight: "700", color: "#1e40af", margin: 0 },
-  dayContent: { display: "flex", flexDirection: "column", gap: "12px" },
-  labeledItem: { display: "flex", gap: "8px", padding: "12px 0", borderBottom: "1px solid #e0f2fe", alignItems: "flex-start" },
-  label: { fontWeight: "700", color: "#1e40af", minWidth: "140px", fontSize: "14px" },
-  value: { color: "#334155", fontSize: "14px", lineHeight: "1.6", flex: 1 },
-  bulletItem: { display: "flex", gap: "12px", padding: "8px 0", alignItems: "flex-start" },
-  bulletPoint: { color: "#3b82f6", fontSize: "20px", fontWeight: "bold", lineHeight: "1.4" },
-  bulletText: { color: "#475569", fontSize: "14px", lineHeight: "1.7", flex: 1 },
-  textItem: { color: "#475569", fontSize: "14px", lineHeight: "1.7", margin: "8px 0" },
-  paragraph: { color: "#475569", fontSize: "15px", lineHeight: "1.8", margin: "15px 0" },
-  divider: { height: "2px", backgroundColor: "#e0f2fe", margin: "30px 0", borderRadius: "2px" },
-};
+const aiStyles = `
+.ai-page{padding:56px 0 84px;color:#112647}.ai-hero{max-width:950px;margin:0 auto 34px;padding:20px 24px}.ai-eyebrow{letter-spacing:.15em;font-size:11px;font-weight:800;color:#ee1660;margin:0 0 12px}.ai-hero h1{font-size:clamp(38px,7vw,70px);line-height:1.02;letter-spacing:-.065em;margin:0}.ai-hero em{color:#ee1660;font-style:normal}.ai-hero>p:last-child{max-width:590px;color:#66748a;line-height:1.65;font-size:17px}.ai-workspace{max-width:1120px;margin:auto;padding:0 24px;display:grid;grid-template-columns:minmax(300px,.82fr) minmax(0,1.3fr);gap:25px}.ai-form,.ai-result{border:1px solid #e6ebf2;border-radius:28px;background:white;box-shadow:0 16px 45px rgba(17,38,71,.07)}.ai-form{padding:30px;align-self:start}.ai-form-header{display:flex;gap:13px;margin-bottom:24px}.ai-form-header>span{width:34px;height:34px;display:grid;place-items:center;background:#112647;color:white;border-radius:11px;font-size:13px;font-weight:800}.ai-form h2,.ai-empty h2,.ai-result h2{margin:0;font-size:22px;letter-spacing:-.04em}.ai-form-header p,.ai-empty p{margin:5px 0 0;color:#718096;font-size:13px}.ai-form>label{display:grid;gap:7px;margin:16px 0;color:#334867;font-weight:750;font-size:13px}.ai-form input:not([type=radio]){box-sizing:border-box;width:100%;padding:13px;border:1px solid #dbe3ef;border-radius:12px;font:inherit;outline:none;background:#fbfcff}.ai-form input:focus{border-color:#ee1660;box-shadow:0 0 0 4px rgba(238,22,96,.11)}.ai-form fieldset{border:0;margin:23px 0 0;padding:0}.ai-form legend{font-size:13px;font-weight:800;color:#334867;margin-bottom:9px}.ai-budget-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.ai-budget{cursor:pointer;border:1px solid #dbe3ef;border-radius:14px;padding:12px 9px;display:grid;gap:3px;transition:.2s;background:#fbfcff}.ai-budget input{position:absolute;opacity:0}.ai-budget.is-selected{border-color:#ee1660;background:#fff5f8;box-shadow:0 5px 14px rgba(238,22,96,.1)}.ai-budget b{font-size:12px}.ai-budget strong{font-size:20px}.ai-budget span{font-size:10px;color:#718096}.ai-budget-summary{margin:16px 0;color:#68768c;font-size:12px;line-height:1.5}.ai-budget-summary strong{color:#112647}.ai-generate{width:100%;padding:15px;background:linear-gradient(115deg,#112647,#244f88 65%,#ee1660);border:0;border-radius:13px;color:white;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 12px 24px rgba(17,38,71,.2);transition:.2s}.ai-generate:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 17px 30px rgba(17,38,71,.25)}.ai-generate:disabled{opacity:.7;cursor:wait}.ai-error{margin-bottom:16px;padding:11px;border-radius:12px;background:#fff3f6;color:#b1144b;font-size:13px}.ai-result{min-height:525px;padding:30px}.ai-empty{height:100%;min-height:460px;display:grid;place-content:center;text-align:center}.ai-empty>span{font-size:36px;color:#ee1660}.ai-spinner{width:30px;height:30px;border:3px solid #e7edf5;border-top-color:#ee1660;border-radius:50%;margin:0 auto 16px;animation:ai-spin .8s linear infinite}.ai-result-header{display:flex;justify-content:space-between;gap:18px;align-items:start;padding-bottom:20px;border-bottom:1px solid #edf0f5}.ai-result-header span{color:#718096;font-size:13px}.ai-print{border:1px solid #dbe3ef;background:white;color:#112647;padding:9px 12px;border-radius:10px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}.ai-intro,.ai-section ul,.ai-day ul{list-style:none;margin:20px 0;padding:0}.ai-section h3{font-size:16px;margin:25px 0 4px}.ai-day{border:1px solid #e7ecf4;border-radius:18px;padding:20px;margin:14px 0;background:linear-gradient(135deg,#fff,#fbfcff)}.ai-day header{display:flex;gap:12px;align-items:center}.ai-day header span{background:#112647;color:#fff;padding:6px 8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.08em}.ai-day h3{margin:0;font-size:17px}.ai-day li,.ai-section li,.ai-intro li{color:#53627a;line-height:1.65;font-size:14px;margin:8px 0}.ai-bullet::before{content:"•";color:#ee1660;font-weight:900;margin-right:9px}.ai-detail{display:grid;grid-template-columns:125px 1fr;gap:9px;padding:8px 0;border-bottom:1px solid #edf0f5;font-size:13px;color:#53627a}.ai-detail strong{color:#112647}.ai-text{list-style:none}@keyframes ai-spin{to{transform:rotate(360deg)}}@media(max-width:780px){.ai-page{padding-top:30px}.ai-workspace{grid-template-columns:1fr;padding:0 14px}.ai-form,.ai-result{padding:22px}.ai-budget-grid{grid-template-columns:1fr}.ai-budget{grid-template-columns:1fr auto;align-items:center}.ai-budget span{grid-column:1/-1}.ai-detail{grid-template-columns:1fr}.ai-hero{padding:10px 20px}.ai-result-header{flex-direction:column}.ai-empty{min-height:260px}}@media print{.ai-hero,.ai-form,.ai-print,nav,footer{display:none!important}.ai-workspace{display:block;padding:0}.ai-result{box-shadow:none;border:0}}
+`;
 
 export default AIItinerary;

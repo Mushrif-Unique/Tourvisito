@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Dubai skyline</title><desc id="desc">A stylised Dubai skyline with the Burj Khalifa at sunset.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#112647"/><stop offset=".58" stop-color="#ee1660"/><stop offset="1" stop-color="#f6ad6d"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#sky)"/><circle cx="197" cy="175" r="82" fill="#ffd9a0"/><path d="M0 535c207-54 406-34 591 18 214 61 413 50 609-10v257H0Z" fill="#edc48a"/>
+  <g fill="#112647"><path d="M95 465h90v130H95zM205 415h110v180H205zM345 455h75v140h-75zM820 444h100v151H820zM945 400h112v195H945zM1080 468h80v127h-80z"/><path d="M570 585h68V194h-68z"/><path d="m579 194 25-138 25 138z"/><path d="M548 585h112v-49H548z"/></g><g fill="#ffd9a0"><path d="M117 495h18v19h-18zm40 0h18v19h-18zm73-42h20v20h-20zm41 0h20v20h-20zm570 28h21v20h-21zm47 0h21v20h-21zm132-44h21v20h-21zm47 0h21v20h-21z"/></g><path d="M0 620c236-18 488-7 720 34 192 33 359 38 480 13v133H0Z" fill="#dca75e" opacity=".75"/>
+</svg>

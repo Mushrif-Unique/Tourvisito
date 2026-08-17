@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Rome Colosseum</title><desc id="desc">A stylised Roman Colosseum in warm evening light.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#112647"/><stop offset="1" stop-color="#e67772"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#sky)"/><circle cx="875" cy="155" r="84" fill="#fbd2a0"/><path d="M0 603c250-40 465-34 675 4 182 34 359 32 525-4v197H0Z" fill="#ca9673"/>
+  <path d="M236 579V358c0-102 164-184 365-184s364 82 364 184v221z" fill="#f2c28f"/><path d="M244 410h714v58H244zM244 511h714v54H244z" fill="#c98565"/>
+  <g fill="#112647"><path d="M288 410v-60c0-35 40-68 84-68s83 33 83 68v60zM490 410v-84c0-38 47-76 96-76s95 38 95 76v84zM722 410v-60c0-35 40-68 84-68s84 33 84 68v60zM288 511v-32c0-31 40-55 84-55s83 24 83 55v32zM490 511v-36c0-35 47-61 96-61s95 26 95 61v36zM722 511v-32c0-31 40-55 84-55s84 24 84 55v32z"/></g><path d="M0 645c210-25 401-13 602 32 194 44 386 39 598-11v134H0Z" fill="#a96e58" opacity=".7"/>
+</svg>

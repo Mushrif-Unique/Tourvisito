@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import API from "../api/api";
+import { getTripImage } from "../utils/tripImages";
 
 const TripDetails = () => {
   const { tripId } = useParams();
@@ -36,8 +37,8 @@ const TripDetails = () => {
     "5": { title: "Dubai Luxury Experience", destination: "Dubai", days: 5, price: 2299, description: "Experience luxury shopping, desert safaris, and stunning skyscrapers in the heart of the UAE.", image: "https://images.unsplash.com/photo-1512453736506-4c0c8a2e4cc6?auto=format&fit=crop&w=800&q=80", budget: "Luxury", rating: 4.9, reviews: 421 },
     "6": { title: "Rome Historical Tour", destination: "Rome", days: 5, price: 1199, description: "Walk through ancient history with visits to the Colosseum, Vatican, and classic Roman cuisine.", image: "https://images.unsplash.com/photo-1552832860-cfde47f1835d?auto=format&fit=crop&w=800&q=80", budget: "Premium", rating: 4.8, reviews: 234 },
     "7": { title: "Amsterdam Canal Tour", destination: "Amsterdam", days: 4, price: 899, description: "Cruise through picturesque canals, visit museums, and experience the vibrant Dutch culture.", image: "https://images.unsplash.com/photo-1502316917128-1aa500764cbd?auto=format&fit=crop&w=800&q=80", budget: "Standard", rating: 4.6, reviews: 167 },
-    "8": { title: "Bangkok Cultural Immersion", destination: "Bangkok", days: 6, price: 799, description: "Discover ornate temples, bustling markets, and delicious street food in Thailand's vibrant capital.", image: "https://images.unsplash.com/photo-1517695712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80", budget: "Budget", rating: 4.7, reviews: 298 },
-    "9": { title: "Sydney Harbor Adventure", destination: "Sydney", days: 7, price: 1699, description: "Explore iconic Opera House, beautiful beaches, and outdoor adventure activities down under.", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80", budget: "Premium", rating: 4.9, reviews: 356 },
+    "8": { title: "Bangkok Cultural Immersion", destination: "Bangkok", days: 6, price: 799, description: "Discover ornate temples, bustling markets, and delicious street food in Thailand's vibrant capital.", image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=1200&q=85", budget: "Budget", rating: 4.7, reviews: 298 },
+    "9": { title: "Sydney Harbor Adventure", destination: "Sydney", days: 7, price: 1699, description: "Explore iconic Opera House, beautiful beaches, and outdoor adventure activities down under.", image: "https://images.unsplash.com/photo-1523059623039-a9ed027e7fad?auto=format&fit=crop&w=1200&q=85", budget: "Premium", rating: 4.9, reviews: 356 },
   };
 
   const trip = mockTripsData[tripId];
@@ -124,7 +125,7 @@ const TripDetails = () => {
       <button onClick={() => navigate("/trips")} style={backBtn}>← Back to Trips</button>
 
       {/* Hero Image Section */}
-      <div style={{ ...heroImage, backgroundImage: `url(${trip.image})` }}>
+      <div style={{ ...heroImage, backgroundImage: `url(${getTripImage(trip)})` }}>
         <div style={imageOverlay}>
           <div style={headerContent}>
             <h1 style={tripTitle}>{trip.title}</h1>

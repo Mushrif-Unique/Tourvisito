@@ -1,96 +1,38 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../api/api";
+import "../styles/auth.css";
 
 const Register = () => {
   const navigate = useNavigate();
+  const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
+  const [role, setRole] = useState("traveler"); const [agencyName, setAgencyName] = useState("");
+  const [loading, setLoading] = useState(false); const [error, setError] = useState("");
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("traveler");
-  const [agencyName, setAgencyName] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const handleRegister = async (event) => {
+    event.preventDefault(); setLoading(true); setError("");
     try {
-      const userData = { name, email, password, role };
-      
-      if (role === "agency") {
-        userData.agencyName = agencyName;
-      }
-      
-      await API.post("/users/register", userData);
-
-      alert("Registration successful! Please login.");
-      navigate("/login", { replace: true });
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
+      const userData = { name, email, password, role }; if (role === "agency") userData.agencyName = agencyName;
+      await API.post("/users/register", userData); alert("Registration successful! Please login."); navigate("/login", { replace: true });
+    } catch (err) { setError(err.response?.data?.message || "Registration failed. Please review your details and try again."); }
+    finally { setLoading(false); }
   };
 
-  return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", display: "flex", justifyContent: "center", alignItems: "center", padding: "20px" }}>
-      <div style={{ width: "100%", maxWidth: "460px", backgroundColor: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
-        <h1 style={{ textAlign: "center", fontSize: "28px", color: "var(--color-primary)", marginBottom: "10px" }}>Create Account</h1>
-        <p style={{ textAlign: "center", color: "#555", marginBottom: "30px" }}>Join TourVisito and start your journey</p>
-
-        <form onSubmit={handleRegister}>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Full Name</label>
-            <input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} />
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Email</label>
-            <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Password</label>
-            <input type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} required style={inputStyle} />
-          </div>
-
-          <div style={fieldStyle}>
-            <label style={labelStyle}>Register As</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} style={inputStyle}>
-              <option value="traveler">Traveler</option>
-              <option value="agency">Travel Agency</option>
-            </select>
-          </div>
-
-          {role === "agency" && (
-            <div style={fieldStyle}>
-              <label style={labelStyle}>Agency Name *</label>
-              <input 
-                type="text" 
-                placeholder="Enter your agency name" 
-                value={agencyName} 
-                onChange={(e) => setAgencyName(e.target.value)} 
-                required={role === "agency"} 
-                style={inputStyle} 
-              />
-            </div>
-          )}
-
-          <button type="submit" disabled={loading} style={{ width: "100%", padding: "14px", backgroundColor: "var(--color-primary)", color: "#fff", fontSize: "16px", border: "none", borderRadius: "6px", cursor: loading ? "not-allowed" : "pointer" }}>
-            {loading ? "Creating account..." : "Register"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+  return <div className="auth-page"><section className="auth-card" aria-labelledby="register-title">
+    <div className="auth-brand"><span className="auth-brand-mark">✦</span> TourVisito</div>
+    <h1 id="register-title" className="auth-heading">Start exploring</h1>
+    <p className="auth-subtitle">Create your account and turn travel ideas into real itineraries.</p>
+    {error && <div className="auth-error" role="alert">{error}</div>}
+    <form className="auth-form" onSubmit={handleRegister}>
+      <label className="auth-field"><span className="auth-label">Full name</span><input className="auth-input" type="text" placeholder="John Doe" value={name} onChange={(event) => setName(event.target.value)} required autoComplete="name" /></label>
+      <label className="auth-field"><span className="auth-label">Email address</span><input className="auth-input" type="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></label>
+      <label className="auth-field"><span className="auth-label">Password</span><input className="auth-input" type="password" placeholder="Create a password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="new-password" /></label>
+      <label className="auth-field"><span className="auth-label">I am joining as</span><select className="auth-select" value={role} onChange={(event) => setRole(event.target.value)}><option value="traveler">Traveler</option><option value="agency">Travel agency</option></select></label>
+      {role === "agency" && <label className="auth-field"><span className="auth-label">Agency name</span><input className="auth-input" type="text" placeholder="Your agency name" value={agencyName} onChange={(event) => setAgencyName(event.target.value)} required autoComplete="organization" /></label>}
+      <button className="auth-button" type="submit" disabled={loading}>{loading ? "Creating your account…" : "Create account"}</button>
+    </form>
+    <div className="auth-links"><span>Already a member? <Link to="/login">Sign in</Link></span></div>
+  </section></div>;
 };
-
-/* STYLES */
-const fieldStyle = { marginBottom: "20px" };
-const labelStyle = { display: "block", marginBottom: "6px", fontWeight: "600", color: "#333" };
-const inputStyle = { width: "100%", padding: "12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" };
 
 export default Register;

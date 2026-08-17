@@ -2,12 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { jwtDecode } from "jwt-decode";
+import { getTripFallbackImage, getTripImage } from "../utils/tripImages";
 
 const TripCard = ({ trip }) => {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [imageSrc, setImageSrc] = useState(() => getTripImage(trip));
+
+  useEffect(() => {
+    setImageSrc(getTripImage(trip));
+  }, [trip]);
 
   // Check if user is logged in and is a traveler
   useEffect(() => {
@@ -108,7 +114,13 @@ const TripCard = ({ trip }) => {
     >
       {/* IMAGE SECTION WITH BADGE */}
       <div style={imageWrapper}>
-        <div style={{...imageContainer, backgroundImage: `url(${trip.image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80"})`}}>
+        <div style={imageContainer}>
+          <img
+            src={imageSrc}
+            alt={trip.title || `${trip.destination || "Travel"} trip`}
+            style={tripImage}
+            onError={() => setImageSrc(getTripFallbackImage(trip))}
+          />
           <div style={overlayGradient} />
           <div style={badgeStyle}>{trip.budget || "Value"}</div>
           {/* Show save button for logged-in travelers or anyone if not logged in (login will be triggered) */}
@@ -181,6 +193,13 @@ const imageContainer = {
   backgroundPosition: "center",
   position: "relative",
   overflow: "hidden",
+};
+
+const tripImage = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
 };
 
 const overlayGradient = {
