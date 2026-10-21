@@ -13,7 +13,9 @@ const Register = () => {
     event.preventDefault(); setLoading(true); setError("");
     try {
       const userData = { name, email, password, role }; if (role === "agency") userData.agencyName = agencyName;
-      await API.post("/users/register", userData); alert("Registration successful! Please login."); navigate("/login", { replace: true });
+      await API.post("/users/register", userData);
+      if (role === "agency") localStorage.setItem("tourvisitoAgencyName", agencyName.trim());
+      alert("Registration successful! Please login."); navigate("/login", { replace: true });
     } catch (err) { setError(err.response?.data?.message || "Registration failed. Please review your details and try again."); }
     finally { setLoading(false); }
   };
@@ -31,7 +33,7 @@ const Register = () => {
       {role === "agency" && <label className="auth-field"><span className="auth-label">Agency name</span><input className="auth-input" type="text" placeholder="Your agency name" value={agencyName} onChange={(event) => setAgencyName(event.target.value)} required autoComplete="organization" /></label>}
       <button className="auth-button" type="submit" disabled={loading}>{loading ? "Creating your account…" : "Create account"}</button>
     </form>
-    <div className="auth-links"><span>Already a member? <Link to="/login">Sign in</Link></span></div>
+    <div className="auth-links"><span>Already a member?</span><Link className="auth-secondary-button" to="/login">Sign in</Link></div>
   </section></div>;
 };
 

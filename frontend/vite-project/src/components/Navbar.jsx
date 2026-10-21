@@ -36,6 +36,7 @@ const Navbar = () => {
 
   const isLoginPage = location.pathname === "/login";
   const isRegisterPage = location.pathname === "/register";
+  const isAuthPage = isLoginPage || isRegisterPage;
 
   const getNavItems = () => {
     if (!token) return null;
@@ -79,7 +80,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={isScrolled ? { ...navWrapper, ...navGlass } : navWrapper}>
+    <nav style={isAuthPage ? authNavWrapper : (isScrolled ? { ...navWrapper, ...navGlass } : navWrapper)}>
       <div style={navContainer}>
         <Link to="/" style={logoStyle}>
           Tour<span style={{ color: "var(--color-accent)" }}>Visito</span>
@@ -87,7 +88,7 @@ const Navbar = () => {
 
         <div style={linkGroup}>
           {isLoginPage && <Link to="/register" style={registerBtn}>Sign Up</Link>}
-          {isRegisterPage && <Link to="/login" style={loginBtn}>Login</Link>}
+          {isRegisterPage && <Link to="/login" style={authLoginBtn}>Login</Link>}
 
           {!isLoginPage && !isRegisterPage && (
             token ? (
@@ -114,8 +115,9 @@ const Navbar = () => {
 };
 
 /* ---------- STYLES ---------- */
-const navWrapper = { position: "sticky", top: 0, padding: "20px 0", zIndex: 1000 };
-const navGlass = { background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)" };
+const navWrapper = { position: "sticky", top: 0, padding: "20px 0", zIndex: 1100 };
+const navGlass = { background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)", boxShadow: "0 8px 24px rgba(17,38,71,0.08)" };
+const authNavWrapper = { ...navWrapper, position: "fixed", left: 0, right: 0, background: "transparent" };
 const navContainer = { maxWidth: "1280px", margin: "auto", display: "flex", justifyContent: "space-between", padding: "0 40px" };
 const logoStyle = { fontSize: "24px", fontWeight: "800", textDecoration: "none", color: "#112647" };
 const linkGroup = { display: "flex", alignItems: "center", gap: "24px" };
@@ -123,7 +125,8 @@ const linkItem = { textDecoration: "none", fontWeight: "600", color: "#112647" }
 const aiPill = { background: "#112647", color: "#fff", padding: "8px 20px", borderRadius: "20px", textDecoration: "none" };
 const calendarBtn = { background: "#667eea", color: "#fff", padding: "8px 20px", borderRadius: "12px", textDecoration: "none" };
 const registerBtn = { background: "#ee1660", color: "#fff", padding: "10px 24px", borderRadius: "12px", textDecoration: "none" };
-const loginBtn = { border: "1px solid #112647", padding: "8px 18px", borderRadius: "10px", textDecoration: "none",color: "#112647" };
+const loginBtn = { background: "#112647", color: "#fff", padding: "10px 20px", borderRadius: "12px", textDecoration: "none", fontWeight: "700", boxShadow: "0 8px 18px rgba(17,38,71,0.18)" };
+const authLoginBtn = { ...loginBtn, background: "#ee1660", boxShadow: "0 8px 20px rgba(238,22,96,0.35)" };
 const logoutBtn = { border: "1px solid #112647", padding: "6px 16px", borderRadius: "10px", background: "none", cursor: "pointer" ,color: "#112647"};
 const userSection = { display: "flex", alignItems: "center", gap: "12px" };
 const userNameStyle = { fontWeight: "600", fontSize: "14px" };

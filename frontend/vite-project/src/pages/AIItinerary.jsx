@@ -30,6 +30,7 @@ const parseItinerary = (text) => {
       result.days.push(currentDay); currentSection = null; return;
     }
     if (/^#{1,4}\s+/.test(line)) {
+      currentDay = null;
       currentSection = { title: plain.replace(/^#+\s*/, ""), items: [] }; result.sections.push(currentSection); return;
     }
     const item = { text: plain, type: /^[-*•]\s+|^\d+[.)]\s+/.test(plain) ? "bullet" : "text" };
