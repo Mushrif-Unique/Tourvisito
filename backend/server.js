@@ -89,7 +89,7 @@ app.listen(PORT, () => {
 ╠════════════════════════════════════════╣
 ║   Port: ${PORT}                        
 ║   Environment: ${process.env.NODE_ENV || 'development'}
-║   Database: ${process.env.MONGODB_URI ? '✅ Connected' : '⚠️  Check connection'}
+║   Database: ${process.env.MONGO_URL ? '✅ Connected' : '⚠️  Check connection'}
 ╚════════════════════════════════════════╝
   `);
 });
